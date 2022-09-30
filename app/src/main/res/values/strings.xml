@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">AppDeporte</string>
+    <string name="questionInitial">¿Hasta qué nivel eres capaz de llegar?</string>
 </resources>
