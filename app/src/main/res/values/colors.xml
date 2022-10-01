@@ -32,5 +32,6 @@
     <color name="chrono_running">#d6250c</color>
     <color name="chrono_walking">#fc4a8aff</color>
     <color name="green">#4caf50</color>
+    <color name="rosa">#B86A4A</color>
 
 </resources>
