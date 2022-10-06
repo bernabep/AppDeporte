@@ -1,21 +1,28 @@
 <resources>
     <string name="app_name">AppDeporte</string>
-    <string name="questionInitial">¿Hasta qué nivel eres capaz de llegar?</string>
-    <string name="title_activity_login2">LoginActivity2</string>
     <string name="email">Email</string>
-    <string name="password">Password</string>
-    <string name="action_sign_in">Sign in or register</string>
+    <string name="password">Contraseña</string>
+    <string name="repPassword">Repetir Contraseña</string>
+    <string name="forgotPassword">Olvidaste tu contraseña?</string>
     <string name="login">Iniciar sesión</string>
-    <string name="welcome">"Welcome !"</string>
-    <string name="invalid_username">Not a valid username</string>
-    <string name="invalid_password">Password must be >5 characters</string>
-    <string name="login_failed">"Login failed"</string>
-    <string name="forgotPassword">¿Olvidaste tu contraseña?</string>
-    <string name="acept">He leído y acepto los  </string>
-    <string name="terms">términos y condiciones de uso.</string>
-    <string name="google">Google</string>
-    <string name="facebook">Facebook</string>
-    <string name="error_register">Error, algo ha ido mal :(</string>
+    <string name="resetPassword">Enviar Contraseña</string>
     <string name="invitation">¿Hasta qué nivel eres capaz de llegar?</string>
+    <string name="acept">He leído y acepto los</string>
+    <string name="terms">Términos y condiciones de uso.</string>
+    <string name="empty_email">Introduce un email porfaplis</string>
+    <string name="invalid_email">mmm parece que el email está mal escrito</string>
+    <string name="google">INICIAR SESION</string>
+    <string name="facebook">INICIAR SESION</string>
+    <string name="bar_title_terms">Términos y Condiciones de Uso</string>
+    <string name="terms1">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent rhoncus convallis metus at pretium. Vivamus at lacinia leo. Praesent velit elit, suscipit sit amet pulvinar id, imperdiet ac massa. Quisque molestie lectus rhoncus urna tempor, ut lacinia mi tempor. Praesent volutpat, ligula eget lobortis cursus, mauris libero consequat ligula, nec scelerisque erat ipsum tempor justo. Aliquam ornare faucibus augue vel faucibus. Ut sollicitudin commodo tortor eu faucibus. Vestibulum lacinia ligula sed tortor auctor, vitae sollicitudin lorem dapibus. Phasellus sed tincidunt odio.</string>
+    <string name="terms2">Praesent arcu nisi, auctor quis tempor id, vehicula non nulla. Sed a fermentum tellus, quis pharetra lorem. Fusce vehicula libero in ultricies varius. Suspendisse vel velit tortor. Aliquam non nisi eget lectus tempor consectetur sed in magna. Nullam tincidunt, nibh ut sodales suscipit, ante est luctus purus, sed pellentesque ipsum massa et quam. Proin sed sapien ultrices ex aliquet elementum sed et erat. Sed tincidunt felis sapien, a suscipit massa cursus et. Phasellus auctor tellus ac neque maximus accumsan. Morbi sit amet odio nec sapien pharetra elementum maximus id odio. Integer laoreet, neque id efficitur auctor, magna massa consequat justo, quis vehicula ipsum massa at sem. Morbi in ornare sapien, in luctus mauris. </string>
+    <string name="terms3">Sed id libero auctor, lacinia lectus a, consequat nisl. Nam quis suscipit purus. Fusce at congue quam. Etiam congue imperdiet bibendum. Etiam at porttitor ipsum. Donec consectetur sapien in neque tempus tempus. Sed vulputate rutrum ultrices. Praesent in est leo. Suspendisse euismod purus id urna tempus pellentesque. Praesent condimentum nisl sit amet purus pulvinar sagittis. Cras purus felis, hendrerit et ornare ut, molestie id orci. Integer dictum consequat leo, id pretium urna tempus et. Donec nibh ante, laoreet id lorem vitae, vestibulum sollicitudin lorem. </string>
+    <string name="tvRegistrar">Registrar Usuario</string>
+    <string name="default_web_cliente_id">483088126272-at9jpj2c88e9jull7ralla1qccrq6bg2.apps.googleusercontent.com</string>
+
+    <string name="facebook_app_id">2283416151833907</string>
+    <string name="fb_login_protocol_scheme">fb2283416151833907</string>
+    <string name="facebook_client_token">22d943a8baf1c3e0f143698c307ef094</string>
+
 
 </resources>
