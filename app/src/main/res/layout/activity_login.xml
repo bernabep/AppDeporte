@@ -131,5 +131,6 @@
         android:textAlignment="textStart"
         android:textColor="@color/black"
         android:textSize="20sp"
-        android:paddingLeft="30dp"/>
+        android:paddingLeft="30dp"
+        android:onClick="callSignInFacebook"/>
 </LinearLayout>

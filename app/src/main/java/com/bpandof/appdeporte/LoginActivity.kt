@@ -11,6 +11,11 @@ import android.view.View
 import android.widget.*
 import androidx.core.content.ContextCompat
 import androidx.core.widget.doOnTextChanged
+import com.facebook.CallbackManager
+import com.facebook.FacebookCallback
+import com.facebook.FacebookException
+import com.facebook.login.LoginManager
+import com.facebook.login.LoginResult
 import com.google.android.gms.auth.api.Auth
 import com.google.android.gms.auth.api.identity.BeginSignInRequest
 import com.google.android.gms.auth.api.identity.SignInClient
@@ -18,6 +23,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
+import com.google.firebase.auth.FacebookAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
@@ -49,6 +55,8 @@ class LoginActivity : AppCompatActivity() {
 
     //signingoogle
     private val RESULT_CODE_SIGN_IN = 100  // Can be any integer unique to the Activity
+    val callbackManager = CallbackManager.Factory.create()
+
 
     //private lateinit var oneTapClient: SignInClient
     private lateinit var signInRequest: BeginSignInRequest
@@ -168,7 +176,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun goHome(email: String, provider: String) {
-
+        Log.d("Funciones", "goHome")
         useremail = email
         providerSession = provider
 
@@ -258,10 +266,67 @@ class LoginActivity : AppCompatActivity() {
         startActivityForResult(googleSignInClient.signInIntent, RESULT_CODE_SIGN_IN)
     }
 
+    fun callSignInFacebook(view: View) {
+        signInFacebook()
+    }
+
+    private fun signInFacebook() {
+
+        Log.d("Funciones", "signInFacebook")
+        LoginManager.getInstance().logInWithReadPermissions(this, listOf("email"))
+        LoginManager.getInstance().registerCallback(
+            callbackManager,
+            object : FacebookCallback<LoginResult> {
+                override fun onSuccess(result: LoginResult) {
+                    result.let {
+                        val token = it.accessToken
+                        val credential = FacebookAuthProvider.getCredential(token.token)
+                        mAuth.signInWithCredential(credential).addOnCompleteListener {
+                            if (it.isSuccessful) {
+                                email = it.result.user?.email.toString()
+                                var dateRegister = SimpleDateFormat("dd/MM/yyyy").format(Date())
+                                var dbRegister = FirebaseFirestore.getInstance()
+                                dbRegister.collection("users").document(email).set(
+                                    hashMapOf(
+                                        "user" to email,
+                                        "dateRegister" to dateRegister
+                                    )
+                                )
+                                Log.d("Funciones", "email? $email")
+                                goHome(email, "Facebook")
+                            } else
+                                showError("Facebook")
+
+                        }
+                    }
+                }
+
+                override fun onCancel() {
+                    Log.d("Funciones", "onCancel")
+                    showError("Facebook")
+                }
+
+                override fun onError(error: FacebookException) {
+                    Log.d(TAG, "facebook:onError", error)
+                    showError("Facebook")
+                }
+            })
+    }
+
+    private fun showError(provider: String) {
+        Log.d("Funciones", "showError")
+        Toast.makeText(this, "Error en la conexión con $provider", Toast.LENGTH_LONG).show()
+    }
+
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        Log.d("Funciones", "onActivityResult")
+        callbackManager.onActivityResult(requestCode, resultCode, data)
+        Log.d("Funciones", "callbackManager")
         super.onActivityResult(requestCode, resultCode, data)
 
         if (requestCode == RESULT_CODE_SIGN_IN) {
+            Log.d("Funciones", "requestCode")
             val task = GoogleSignIn.getSignedInAccountFromIntent(data)
             try {
                 val account = task.getResult(ApiException::class.java)!!
@@ -280,17 +345,14 @@ class LoginActivity : AppCompatActivity() {
                                 )
                             )
                             goHome(email, "Google")
-                        } else Toast.makeText(
-                            this,
-                            "Error en la conexión con Google",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        } else
+                            showError("Google")
 
                     }
                 }
 
             } catch (e: ApiException) {
-                Toast.makeText(this, "Error en la conexión con Google", Toast.LENGTH_SHORT).show()
+                showError("Google")
             }
         }
 
