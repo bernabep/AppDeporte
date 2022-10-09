@@ -3,11 +3,13 @@ package com.bpandof.appdeporte
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import com.bpandof.appdeporte.LoginActivity.Companion.providerSession
 import com.bpandof.appdeporte.LoginActivity.Companion.useremail
@@ -55,10 +57,10 @@ class MainActivity : AppCompatActivity(),NavigationView.OnNavigationItemSelected
 
 
     fun callSignOut(view: View) {
-        signOff()
+        signOut()
     }
 
-    private fun signOff() {
+    private fun signOut() {
         useremail = ""
 
         if (providerSession == "Facebook") LoginManager.getInstance().logOut()
@@ -67,8 +69,18 @@ class MainActivity : AppCompatActivity(),NavigationView.OnNavigationItemSelected
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
-        TODO("Not yet implemented")
 
-        //return true
+        when(item.itemId){
+            R.id.nav_item_record -> callRecordActivity()
+            R.id.nav_item_signout -> signOut()
+        }
+
+        drawer.closeDrawer(GravityCompat.START)
+
+        return true
+    }
+    private fun callRecordActivity(){
+        val intent = Intent(this,RecordActivity::class.java)
+        startActivity(intent)
     }
 }
