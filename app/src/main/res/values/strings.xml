@@ -5,6 +5,7 @@
     <string name="repPassword">Repetir Contraseña</string>
     <string name="forgotPassword">Olvidaste tu contraseña?</string>
     <string name="login">Iniciar sesión</string>
+    <string name="cerrar_sesion">Cerrar Sesión</string>
     <string name="resetPassword">Enviar Contraseña</string>
     <string name="invitation">¿Hasta qué nivel eres capaz de llegar?</string>
     <string name="acept">He leído y acepto los</string>
@@ -23,6 +24,26 @@
     <string name="facebook_app_id">2283416151833907</string>
     <string name="fb_login_protocol_scheme">fb2283416151833907</string>
     <string name="facebook_client_token">22d943a8baf1c3e0f143698c307ef094</string>
+
+
+    <string name="bar_title">Principal</string>
+    <string name="bar_title_close">Cerrando</string>
+    <string name="menu_running">Running</string>
+    <string name="menu_record">Historial</string>
+    <string name="menu_becamepremium">Hazte Premium</string>
+    <string name="menu_clearpreferences">Reestabler ajustes</string>
+    <string name="menu_signout">Cerrar Sesión</string>
+    <string name="menu_offercourse">¿Quieres aprender a desarrollar apps? Entra aquí</string>
+
+    <string name="user">bpandof@gmail.com</string>
+    <string name="nav_hi">Quien mueve las piernes mueve el corazón. !Muevete, corazón!</string>
+
+    <string name="level">Nivel</string>
+    <string name="timebike">4d 03:56:23</string>
+    <string name="timerollerskate">4d 03:56:23</string>
+    <string name="timerunning">4d 03:56:23</string>
+
+
 
 
 </resources>

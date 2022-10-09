@@ -33,5 +33,7 @@
     <color name="chrono_walking">#fc4a8aff</color>
     <color name="green">#4caf50</color>
     <color name="salmon">#B86A4A</color>
+    <color name="salmon_dark">#F46F38</color>
+    <color name="salmon_pastel">#B68F7E</color>
 
 </resources>

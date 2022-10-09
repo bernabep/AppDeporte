@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group>
+        <item android:id="@+id/nav_item_main"
+            android:icon="@drawable/camino"
+            android:title="@string/menu_running"/>
+
+        <item android:id="@+id/item_record"
+            android:icon="@drawable/menu_galery"
+            android:title="@string/menu_record"/>
+
+        <item android:id="@+id/nav_item_premium"
+            android:icon="@android:drawable/star_on"
+            android:title="@string/menu_becamepremium"/>
+    </group>
+
+    <item android:title="cuenta">
+        <menu>
+            <item android:id="@+id/nav_item_clearpreferences"
+                android:icon="@android:drawable/ic_popup_sync"
+                android:title="@string/menu_clearpreferences"/>
+
+            <item android:id="@+id/nav_item_signout"
+                android:icon="@drawable/arrow_back"
+                android:title="@string/menu_signout"/>
+
+        </menu>
+        </item>
+
+    <item android:title="Anuncio">
+        <menu>
+            <item android:id="@+id/nam_item_offer"
+                android:icon="@drawable/common_full_open_on_phone"
+                android:title="@string/menu_offercourse"/>
+
+        </menu>
+
+    </item>
+
+</menu>

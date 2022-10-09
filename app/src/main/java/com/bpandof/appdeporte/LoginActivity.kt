@@ -51,7 +51,7 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var lyTerms: LinearLayout
     private lateinit var tvLogin: TextView
     private lateinit var cbAcept: CheckBox
-    private var loginOrRegister: String? = "login"
+    private var loginOrRegister: String = "Login"
 
     //signingoogle
     private val RESULT_CODE_SIGN_IN = 100  // Can be any integer unique to the Activity
@@ -99,7 +99,9 @@ class LoginActivity : AppCompatActivity() {
         super.onStart()
 
         val currentUser = FirebaseAuth.getInstance().currentUser
-        if (currentUser != null) goHome(currentUser.email.toString(), currentUser.providerId)
+        if (currentUser != null) {
+            goHome(currentUser.email.toString(), currentUser.providerId)
+        }
 
     }
 
@@ -107,7 +109,9 @@ class LoginActivity : AppCompatActivity() {
         super.onResume()
 
         val currentUser = FirebaseAuth.getInstance().currentUser
-        if (currentUser != null) goHome(currentUser.email.toString(), currentUser.providerId)
+        if (currentUser != null) {
+            goHome(currentUser.email.toString(), currentUser.providerId)
+        }
     }
 
     override fun onBackPressed() {
@@ -121,7 +125,6 @@ class LoginActivity : AppCompatActivity() {
     private fun manageButtonLogin() {
         var tvLogin = findViewById<TextView>(R.id.tvLogin)
         var cbAcept = findViewById<CheckBox>(R.id.cbAcept)
-        // if (cbAcept.isChecked && loginOrRegister=="register") register()
 
         email = etEmail.text.toString()
         password = etPassword.text.toString()
@@ -172,7 +175,6 @@ class LoginActivity : AppCompatActivity() {
                     }
                 }
             }
-
     }
 
     private fun goHome(email: String, provider: String) {
@@ -242,11 +244,6 @@ class LoginActivity : AppCompatActivity() {
     }
 
     fun callTermsAcept(view: View) {
-        //var tvLogin = findViewById<TextView>(R.id.tvLogin)
-        /*if(!cbAcept.isChecked) {
-            tvLogin.setBackgroundColor(ContextCompat.getColor(this, R.color.gray))
-            tvLogin.isEnabled = false*/
-        //controlIsRegistering(cbAcept.isChecked)
         manageButtonLogin()
     }
 
@@ -347,18 +344,13 @@ class LoginActivity : AppCompatActivity() {
                             goHome(email, "Google")
                         } else
                             showError("Google")
-
                     }
                 }
-
             } catch (e: ApiException) {
                 showError("Google")
             }
         }
-
-
     }
-
 }
 
 
