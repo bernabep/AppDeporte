@@ -28,12 +28,13 @@
     <color name="gray_strong">#5B5B5B</color>
     <color name="gray_dark">#2B2A29</color>
     <color name="gray_trans">#9FF7F7F7</color>
+    <color name="gray_light_trans">#9FFFFFFF</color>
 
     <color name="chrono_running">#d6250c</color>
     <color name="chrono_walking">#fc4a8aff</color>
     <color name="green">#4caf50</color>
-    <color name="salmon">#B86A4A</color>
-    <color name="salmon_dark">#F46F38</color>
-    <color name="salmon_pastel">#B68F7E</color>
+    <color name="salmon">#CF5523</color>
+    <color name="salmon_dark">#913610</color>
+    <color name="salmon_pastel">#F66C34</color>
 
 </resources>

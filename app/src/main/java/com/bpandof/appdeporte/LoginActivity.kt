@@ -9,6 +9,7 @@ import android.util.Log
 import android.view.TextureView
 import android.view.View
 import android.widget.*
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import androidx.core.widget.doOnTextChanged
 import com.facebook.CallbackManager
@@ -95,24 +96,21 @@ class LoginActivity : AppCompatActivity() {
         } else loginOrRegister = "login"
     }
 
-    public override fun onStart() {
+    override fun onStart() {
         super.onStart()
-
         val currentUser = FirebaseAuth.getInstance().currentUser
         if (currentUser != null) {
             goHome(currentUser.email.toString(), currentUser.providerId)
         }
-
     }
 
-    public override fun onResume() {
+    /*override fun onResume() {
         super.onResume()
-
         val currentUser = FirebaseAuth.getInstance().currentUser
         if (currentUser != null) {
             goHome(currentUser.email.toString(), currentUser.providerId)
         }
-    }
+    }*/
 
     override fun onBackPressed() {
         super.onBackPressed()

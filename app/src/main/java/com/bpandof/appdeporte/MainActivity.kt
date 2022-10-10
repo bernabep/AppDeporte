@@ -9,6 +9,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import com.bpandof.appdeporte.LoginActivity.Companion.providerSession
@@ -28,6 +29,14 @@ class MainActivity : AppCompatActivity(),NavigationView.OnNavigationItemSelected
         initToolBar()
         initNavigationView()
 
+    }
+
+    override fun onBackPressed() {
+        //super.onBackPressed()
+        if(drawer.isDrawerOpen(GravityCompat.START))
+            drawer.closeDrawer(GravityCompat.START)
+        else
+          signOut()
     }
 
     private fun initToolBar() {

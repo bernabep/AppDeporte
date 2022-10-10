@@ -1,15 +1,19 @@
 package com.bpandof.appdeporte
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 
 class RecordActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_record)
+
 
         val toolbar: androidx.appcompat.widget.Toolbar = findViewById(R.id.toolbar_record)
         setSupportActionBar(toolbar)
@@ -79,6 +83,11 @@ class RecordActivity : AppCompatActivity() {
         }
 
         return super.onOptionsItemSelected(item)
+    }
+
+    private fun callHome(v: View){
+        val intent = Intent(this,MainActivity::class.java)
+        startActivity(intent)
     }
 
 }
