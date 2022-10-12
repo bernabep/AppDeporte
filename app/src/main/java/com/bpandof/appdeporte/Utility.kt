@@ -1,11 +1,26 @@
 package com.bpandof.appdeporte
 
 import android.animation.ObjectAnimator
-import android.animation.ValueAnimator.ofFloat
 import android.view.View
 import android.widget.LinearLayout
+import java.util.concurrent.TimeUnit
 
-object Objects {
+object Utility {
+
+    fun getFormattedStopWatch(ms:Long):String{
+        var milliseconds = ms
+        val hours = TimeUnit.MILLISECONDS.toHours(milliseconds)
+        milliseconds -= TimeUnit.HOURS.toMillis(hours)
+        val minutes = TimeUnit.MILLISECONDS.toMinutes(milliseconds)
+        milliseconds -= TimeUnit.MINUTES.toMillis(minutes)
+        val seconds = TimeUnit.MILLISECONDS.toSeconds(milliseconds)
+
+        return "${if(hours<10)"0" else ""}$hours:" +
+                "${if(minutes<10)"0" else ""}$minutes:" +
+                "${if(seconds<10)"0" else ""}$seconds"
+
+
+    }
 
     fun getSecFromWatch(watch: String): Int {
         var secs = 0

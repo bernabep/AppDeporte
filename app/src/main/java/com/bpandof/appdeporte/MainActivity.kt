@@ -1,12 +1,9 @@
 package com.bpandof.appdeporte
 
-import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
-import android.content.Context
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
@@ -15,7 +12,6 @@ import android.widget.NumberPicker
 import android.widget.Switch
 import android.widget.TextView
 import androidx.appcompat.app.ActionBarDrawerToggle
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
@@ -24,30 +20,31 @@ import com.bpandof.appdeporte.LoginActivity.Companion.useremail
 import com.facebook.login.LoginManager
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.FirebaseAuth
-import com.bpandof.appdeporte.Objects.setHeightLinearLayout
-import com.bpandof.appdeporte.Objects.animateViewofInt
-import com.bpandof.appdeporte.Objects.animateViewofFloat
-import com.bpandof.appdeporte.Objects.getSecFromWatch
+import com.bpandof.appdeporte.Utility.setHeightLinearLayout
+import com.bpandof.appdeporte.Utility.animateViewofInt
+import com.bpandof.appdeporte.Utility.animateViewofFloat
+import com.bpandof.appdeporte.Utility.getFormattedStopWatch
+import com.bpandof.appdeporte.Utility.getSecFromWatch
 import me.tankery.lib.circularseekbar.CircularSeekBar
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
     private lateinit var drawer: DrawerLayout
 
-    private lateinit var csbChallengeDistance:CircularSeekBar
-    private lateinit var csbCurrentDistance:CircularSeekBar
-    private lateinit var csbRecordDistance:CircularSeekBar
+    private lateinit var csbChallengeDistance: CircularSeekBar
+    private lateinit var csbCurrentDistance: CircularSeekBar
+    private lateinit var csbRecordDistance: CircularSeekBar
 
-    private lateinit var csbCurrentAvgSpeed:CircularSeekBar
-    private lateinit var csbRecordAvgSpeed:CircularSeekBar
+    private lateinit var csbCurrentAvgSpeed: CircularSeekBar
+    private lateinit var csbRecordAvgSpeed: CircularSeekBar
 
-    private lateinit var csbCurrentSpeed:CircularSeekBar
-    private lateinit var csbCurrentMaxSpeed:CircularSeekBar
-    private lateinit var csbRecordSpeed:CircularSeekBar
+    private lateinit var csbCurrentSpeed: CircularSeekBar
+    private lateinit var csbCurrentMaxSpeed: CircularSeekBar
+    private lateinit var csbRecordSpeed: CircularSeekBar
 
-    private lateinit var tvDistanceRecord:TextView
-    private lateinit var tvAvgSpeedRecord:TextView
-    private lateinit var tvMaxSpeedRecord:TextView
+    private lateinit var tvDistanceRecord: TextView
+    private lateinit var tvAvgSpeedRecord: TextView
+    private lateinit var tvMaxSpeedRecord: TextView
 
 
     private lateinit var swIntervalMode: Switch
@@ -68,6 +65,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private lateinit var tvRunningTime: TextView
     private lateinit var tvWalkingTime: TextView
     private lateinit var csbRunWalk: CircularSeekBar
+
+    private var ROUND_INTERVAL = 300
+    private var TIME_RUNNING: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -123,11 +123,13 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         tvChrono.text = getString(R.string.init_stop_watch_value)
     }
 
-    private fun initObjects() {
-
+    private fun initChrono() {
         tvChrono = findViewById(R.id.tvChrono)
         tvChrono.setTextColor(ContextCompat.getColor(this, R.color.white))
         initStopWatch()
+    }
+
+    private fun hideLayouts() {
         var lyMap = findViewById<LinearLayout>(R.id.lyMap)
         var lyFragmenMap = findViewById<LinearLayout>(R.id.lyFragmentMap)
         var lyIntervalModeSpace = findViewById<LinearLayout>(R.id.lyIntervalModeSpace)
@@ -151,7 +153,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         lyIntervalMode.translationY = -300f
         lyChallenges.translationY = -300f
         lySettingsVolumes.translationY = -300f
+    }
 
+    private fun initMetrics() {
         csbChallengeDistance = findViewById(R.id.csbChallengeDistance)
         csbCurrentDistance = findViewById(R.id.csbCurrentDistance)
         csbRecordDistance = findViewById(R.id.csbRecordDistance)
@@ -176,26 +180,37 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         tvDistanceRecord.text = ""
         tvAvgSpeedRecord.text = ""
         tvMaxSpeedRecord.text = ""
+    }
 
-
-
-
+    private fun initSwitchs() {
         swIntervalMode = findViewById(R.id.swIntervalMode)
         swChallenges = findViewById(R.id.swChallenges)
         swVolumes = findViewById(R.id.swVolumes)
+    }
 
-        npDurationInterval= findViewById<NumberPicker>(R.id.npDurationInterval)
-        tvRunningTime= findViewById<TextView>(R.id.tvRunningTime)
-        tvWalkingTime= findViewById<TextView>(R.id.tvWalkingTime)
+    private fun initIntervalMode() {
+        npDurationInterval = findViewById<NumberPicker>(R.id.npDurationInterval)
+        tvRunningTime = findViewById<TextView>(R.id.tvRunningTime)
+        tvWalkingTime = findViewById<TextView>(R.id.tvWalkingTime)
         csbRunWalk = findViewById<CircularSeekBar>(R.id.csbRunWalk)
 
-        npChallengeDistance = findViewById(R.id.npChallengeDistance)
-        npChallengeDurationHH = findViewById(R.id.npChallengeDurationHH)
-        npChallengeDurationMM = findViewById(R.id.npChallengeDurationMM)
-        npChallengeDurationSS = findViewById(R.id.npChallengeDurationSS)
+        npDurationInterval.minValue = 1
+        npDurationInterval.maxValue = 60
+        npDurationInterval.value = 5
+        npDurationInterval.wrapSelectorWheel = true
+        npDurationInterval.setFormatter(NumberPicker.Formatter { i -> String.format("%02d", i) })
 
+        npDurationInterval.setOnValueChangedListener { picker, oldVal, newVal ->
+            csbRunWalk.max = (newVal * 60).toFloat()
+            csbRunWalk.progress = csbRunWalk.max / 2
 
-        /*IMPLEMENTACION DE SEEKBAR CIRCULAR*/
+            tvRunningTime.text = getFormattedStopWatch((((newVal * 60) / 2) * 1000).toLong()).subSequence(3, 8)
+            tvWalkingTime.text = tvRunningTime.text
+
+            ROUND_INTERVAL = newVal * 60
+            TIME_RUNNING = ROUND_INTERVAL / 2
+
+        }
 
         csbRunWalk.setOnSeekBarChangeListener(object :
             CircularSeekBar.OnCircularSeekBarChangeListener {
@@ -227,8 +242,70 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             override fun onStartTrackingTouch(seekBar: CircularSeekBar?) {
             }
         })
+    }
+
+    private fun initChallengeMode() {
+        npChallengeDistance = findViewById(R.id.npChallengeDistance)
+        npChallengeDurationHH = findViewById(R.id.npChallengeDurationHH)
+        npChallengeDurationMM = findViewById(R.id.npChallengeDurationMM)
+        npChallengeDurationSS = findViewById(R.id.npChallengeDurationSS)
+
+        npChallengeDistance.minValue = 1
+        npChallengeDistance.maxValue = 300
+        npChallengeDistance.value = 10
+        npChallengeDistance.wrapSelectorWheel = true
+
+        npChallengeDistance.setOnValueChangedListener { picker, oldVal, newVal ->
+            challengeDistance = newVal.toFloat()
+            csbChallengeDistance.max = newVal.toFloat()
+            csbChallengeDistance.progress = newVal.toFloat()
+            challengeDuration = 0
+
+            if(csbChallengeDistance.max>csbRecordDistance.max)
+                csbCurrentDistance.max = csbChallengeDistance.max
+        }
+
+        npChallengeDurationHH.minValue = 0
+        npChallengeDurationHH.maxValue = 23
+        npChallengeDurationHH.value = 1
+        npChallengeDurationHH.wrapSelectorWheel = true
+        npChallengeDurationHH.setFormatter(NumberPicker.Formatter { i -> String.format("%02d", i) })
+
+        npChallengeDurationMM.minValue = 0
+        npChallengeDurationMM.maxValue = 59
+        npChallengeDurationMM.value = 0
+        npChallengeDurationMM.wrapSelectorWheel = true
+        npChallengeDurationMM.setFormatter(NumberPicker.Formatter { i -> String.format("%02d", i) })
+
+        npChallengeDurationSS.minValue = 0
+        npChallengeDurationSS.maxValue = 59
+        npChallengeDurationSS.value = 0
+        npChallengeDurationSS.wrapSelectorWheel = true
+        npChallengeDurationSS.setFormatter(NumberPicker.Formatter { i -> String.format("%02d", i) })
+
+        npChallengeDurationHH.setOnValueChangedListener { picker, oldVal, newVal ->
+            getChallengeDuration(newVal,npChallengeDurationMM.value,npChallengeDurationSS.value)
+        }
+
+        npChallengeDurationHH.setOnValueChangedListener { picker, oldVal, newVal ->
+            getChallengeDuration(npChallengeDurationHH.value,newVal,npChallengeDurationSS.value)
+        }
+
+        npChallengeDurationHH.setOnValueChangedListener { picker, oldVal, newVal ->
+            getChallengeDuration(npChallengeDurationHH.value,npChallengeDurationMM.value,newVal)
+        }
 
 
+    }
+
+
+    private fun initObjects() {
+        initChrono()
+        hideLayouts()
+        initMetrics()
+        initSwitchs()
+        initIntervalMode()
+        initChallengeMode()
     }
 
 
