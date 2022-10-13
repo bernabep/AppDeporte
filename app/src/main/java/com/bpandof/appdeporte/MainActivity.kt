@@ -4,9 +4,12 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
+import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.NumberPicker
 import android.widget.Switch
@@ -27,9 +30,15 @@ import com.bpandof.appdeporte.Utility.animateViewofFloat
 import com.bpandof.appdeporte.Utility.getFormattedStopWatch
 import com.bpandof.appdeporte.Utility.getSecFromWatch
 import io.grpc.internal.SharedResourceHolder.Resource
+import kotlinx.coroutines.Runnable
 import me.tankery.lib.circularseekbar.CircularSeekBar
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
+
+    private var mHandler: Handler? = null
+    private var mInterval = 1000
+    private var timeInSeconds = 0L
+    private var startButtonClicked = false
 
     private var widthScreenPixels: Int = 0
     private var heightScreenPixels: Int = 0
@@ -263,6 +272,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                         csbRunWalk.progress = csbRunWalk.progress + set
                     }
                 }
+                if (csbRunWalk.progress == 0f) manageEnableButtonsRun(false,false)
+                else manageEnableButtonsRun(false,true)
 
                 tvRunningTime.text =
                     getFormattedStopWatch((csbRunWalk.progress.toInt() * 1000).toLong()).subSequence(
@@ -568,6 +579,77 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
 
         }
+    }
+
+    fun startOrStopButtonClicked(v: View) {
+        manageRun()
+    }
+
+    fun manageRun() {
+
+        if (!startButtonClicked) {
+            startButtonClicked = true
+            startTime()
+            manageEnableButtonsRun(false, true)
+        } else {
+            startButtonClicked = false
+            stopTime()
+            manageEnableButtonsRun(true, true)
+        }
+    }
+
+    private fun manageEnableButtonsRun(e_reset: Boolean, e_run: Boolean) {
+        val tvReset = findViewById<TextView>(R.id.tvReset)
+        val btStart = findViewById<LinearLayout>(R.id.btStart)
+        val btStartLabel = findViewById<TextView>(R.id.btStartLabel)
+        tvReset.setEnabled(e_reset)
+        btStart.setEnabled(e_run)
+
+        if (e_reset) {
+            tvReset.setBackgroundColor(ContextCompat.getColor(this, R.color.green))
+            animateViewofFloat(tvReset, "translationY", 0f, 500)
+        } else {
+            tvReset.setBackgroundColor(ContextCompat.getColor(this, R.color.gray))
+            animateViewofFloat(tvReset, "translationY", 150f, 500)
+        }
+
+        if (e_run) {
+            if (startButtonClicked) {
+                btStart.background = getDrawable(R.drawable.circle_background_topause)
+                btStartLabel.setText(R.string.stop)
+            } else {
+                btStart.background = getDrawable(R.drawable.circle_background_toplay)
+                btStartLabel.setText(R.string.start)
+            }
+        }else{
+            btStart.background = getDrawable(R.drawable.circle_background_todisable)
+        }
+
+
+    }
+
+    private fun startTime() {
+        mHandler = Handler(Looper.getMainLooper())
+        chronometer.run()
+    }
+
+    private fun stopTime() {
+        mHandler?.removeCallbacks(chronometer)
+    }
+
+    private var chronometer: Runnable = object : Runnable {
+        override fun run() {
+            try {
+                timeInSeconds += 1
+                updateStopWatchView()
+            } finally {
+                mHandler!!.postDelayed(this, mInterval.toLong())
+            }
+        }
+    }
+
+    private fun updateStopWatchView() {
+        tvChrono.text = getFormattedStopWatch(timeInSeconds * 1000)
     }
 }
 
