@@ -14,6 +14,7 @@ import android.widget.TextView
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
+import androidx.core.view.isVisible
 import androidx.drawerlayout.widget.DrawerLayout
 import com.bpandof.appdeporte.LoginActivity.Companion.providerSession
 import com.bpandof.appdeporte.LoginActivity.Companion.useremail
@@ -25,9 +26,14 @@ import com.bpandof.appdeporte.Utility.animateViewofInt
 import com.bpandof.appdeporte.Utility.animateViewofFloat
 import com.bpandof.appdeporte.Utility.getFormattedStopWatch
 import com.bpandof.appdeporte.Utility.getSecFromWatch
+import io.grpc.internal.SharedResourceHolder.Resource
 import me.tankery.lib.circularseekbar.CircularSeekBar
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
+
+    private var widthScreenPixels: Int = 0
+    private var heightScreenPixels: Int = 0
+    private var widthAnimations: Int = 0
 
     private lateinit var drawer: DrawerLayout
 
@@ -68,6 +74,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     private var ROUND_INTERVAL = 300
     private var TIME_RUNNING: Int = 0
+
+    private lateinit var lyPopupRun: LinearLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -127,6 +135,18 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         tvChrono = findViewById(R.id.tvChrono)
         tvChrono.setTextColor(ContextCompat.getColor(this, R.color.white))
         initStopWatch()
+
+        widthScreenPixels = resources.displayMetrics.widthPixels
+        heightScreenPixels = resources.displayMetrics.heightPixels
+        widthAnimations = widthScreenPixels
+
+        val lyChronoProgressBg = findViewById<LinearLayout>(R.id.lyChronoProgressBg)
+        val lyRoundProgressBg = findViewById<LinearLayout>(R.id.lyRoundProgressBg)
+
+        lyChronoProgressBg.translationX = -widthAnimations.toFloat()
+        lyRoundProgressBg.translationX = -widthAnimations.toFloat()
+
+
     }
 
     private fun hideLayouts() {
@@ -204,14 +224,16 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             csbRunWalk.max = (newVal * 60).toFloat()
             csbRunWalk.progress = csbRunWalk.max / 2
 
-            tvRunningTime.text = getFormattedStopWatch((((newVal * 60) / 2) * 1000).toLong()).subSequence(3, 8)
+            tvRunningTime.text =
+                getFormattedStopWatch((((newVal * 60) / 2) * 1000).toLong()).subSequence(3, 8)
             tvWalkingTime.text = tvRunningTime.text
 
             ROUND_INTERVAL = newVal * 60
             TIME_RUNNING = ROUND_INTERVAL / 2
 
         }
-
+        csbRunWalk.max = 300f
+        csbRunWalk.progress = 150f
         csbRunWalk.setOnSeekBarChangeListener(object :
             CircularSeekBar.OnCircularSeekBarChangeListener {
             override fun onProgressChanged(
@@ -220,18 +242,39 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 fromUser: Boolean
             ) {
 
-                var STEPS_UX: Int = 15
-                var set: Int = 0
-                var p = progress.toInt()
+                if (fromUser) {
+                    var STEPS_UX: Int = 15
 
-                if (p % STEPS_UX != 0) {
-                    while (p >= 60) p -= 60
-                    while (p >= STEPS_UX) p -= STEPS_UX
-                    if (STEPS_UX - p > STEPS_UX / 2) set = -1 * p
-                    else set = STEPS_UX - p
+                    if (ROUND_INTERVAL > 600) STEPS_UX = 60
+                    if (ROUND_INTERVAL > 1800) STEPS_UX = 300
 
-                    csbRunWalk.progress = csbRunWalk.progress + set
+                    var set: Int = 0
+                    var p = progress.toInt()
+
+                    var limit = 60
+                    if (ROUND_INTERVAL > 1800) limit = 300
+
+                    if (p % STEPS_UX != 0 && progress != csbRunWalk.max) {
+                        while (p >= limit) p -= limit
+                        while (p >= STEPS_UX) p -= STEPS_UX
+                        if (STEPS_UX - p > STEPS_UX / 2) set = -1 * p
+                        else set = STEPS_UX - p
+
+                        csbRunWalk.progress = csbRunWalk.progress + set
+                    }
                 }
+
+                tvRunningTime.text =
+                    getFormattedStopWatch((csbRunWalk.progress.toInt() * 1000).toLong()).subSequence(
+                        3,
+                        8
+                    )
+                tvWalkingTime.text =
+                    getFormattedStopWatch(((ROUND_INTERVAL - csbRunWalk.progress.toInt()) * 1000).toLong()).subSequence(
+                        3,
+                        8
+                    )
+
 
             }
 
@@ -261,7 +304,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             csbChallengeDistance.progress = newVal.toFloat()
             challengeDuration = 0
 
-            if(csbChallengeDistance.max>csbRecordDistance.max)
+            if (csbChallengeDistance.max > csbRecordDistance.max)
                 csbCurrentDistance.max = csbChallengeDistance.max
         }
 
@@ -284,20 +327,27 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         npChallengeDurationSS.setFormatter(NumberPicker.Formatter { i -> String.format("%02d", i) })
 
         npChallengeDurationHH.setOnValueChangedListener { picker, oldVal, newVal ->
-            getChallengeDuration(newVal,npChallengeDurationMM.value,npChallengeDurationSS.value)
+            getChallengeDuration(newVal, npChallengeDurationMM.value, npChallengeDurationSS.value)
         }
 
         npChallengeDurationHH.setOnValueChangedListener { picker, oldVal, newVal ->
-            getChallengeDuration(npChallengeDurationHH.value,newVal,npChallengeDurationSS.value)
+            getChallengeDuration(npChallengeDurationHH.value, newVal, npChallengeDurationSS.value)
         }
 
         npChallengeDurationHH.setOnValueChangedListener { picker, oldVal, newVal ->
-            getChallengeDuration(npChallengeDurationHH.value,npChallengeDurationMM.value,newVal)
+            getChallengeDuration(npChallengeDurationHH.value, npChallengeDurationMM.value, newVal)
         }
 
 
     }
 
+    private fun hidePopUpRun() {
+        var lyWindow = findViewById<LinearLayout>(R.id.lyWindow)
+        lyWindow.translationX = 400f
+        lyPopupRun = findViewById<LinearLayout>(R.id.lyPopupRun)
+        lyPopupRun.isVisible = false
+
+    }
 
     private fun initObjects() {
         initChrono()
@@ -306,8 +356,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         initSwitchs()
         initIntervalMode()
         initChallengeMode()
+        hidePopUpRun()
     }
-
 
     fun callSignOut(view: View) {
         signOut()
