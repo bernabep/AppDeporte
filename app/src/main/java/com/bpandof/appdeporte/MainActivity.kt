@@ -29,6 +29,7 @@ import com.bpandof.appdeporte.Utility.animateViewofInt
 import com.bpandof.appdeporte.Utility.animateViewofFloat
 import com.bpandof.appdeporte.Utility.getFormattedStopWatch
 import com.bpandof.appdeporte.Utility.getSecFromWatch
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import io.grpc.internal.SharedResourceHolder.Resource
 import kotlinx.coroutines.Runnable
 import me.tankery.lib.circularseekbar.CircularSeekBar
@@ -38,6 +39,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private var mHandler: Handler? = null
     private var mInterval = 1000
     private var timeInSeconds = 0L
+    private var rounds:Int = 0
+
     private var startButtonClicked = false
 
     private var widthScreenPixels: Int = 0
@@ -61,10 +64,16 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private lateinit var tvAvgSpeedRecord: TextView
     private lateinit var tvMaxSpeedRecord: TextView
 
+    private lateinit var tvChrono: TextView
+    private lateinit var fbCamara: FloatingActionButton
 
     private lateinit var swIntervalMode: Switch
+    private lateinit var npDurationInterval: NumberPicker
+    private lateinit var tvRunningTime: TextView
+    private lateinit var tvWalkingTime: TextView
+    private lateinit var csbRunWalk: CircularSeekBar
+
     private lateinit var swChallenges: Switch
-    private lateinit var swVolumes: Switch
 
     private lateinit var npChallengeDistance: NumberPicker
     private lateinit var npChallengeDurationHH: NumberPicker
@@ -74,12 +83,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private var challengeDistance: Float = 0f
     private var challengeDuration: Int = 0
 
-    private lateinit var tvChrono: TextView
-
-    private lateinit var npDurationInterval: NumberPicker
-    private lateinit var tvRunningTime: TextView
-    private lateinit var tvWalkingTime: TextView
-    private lateinit var csbRunWalk: CircularSeekBar
+    private lateinit var swVolumes: Switch
 
     private var ROUND_INTERVAL = 300
     private var TIME_RUNNING: Int = 0
@@ -155,6 +159,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         lyChronoProgressBg.translationX = -widthAnimations.toFloat()
         lyRoundProgressBg.translationX = -widthAnimations.toFloat()
 
+        val tvReset: TextView = findViewById(R.id.tvReset)
+        tvReset.setOnClickListener { resetClicked() }
+
+        fbCamara = findViewById(R.id.fbCamera)
+        fbCamara.isVisible = false
 
     }
 
@@ -272,8 +281,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                         csbRunWalk.progress = csbRunWalk.progress + set
                     }
                 }
-                if (csbRunWalk.progress == 0f) manageEnableButtonsRun(false,false)
-                else manageEnableButtonsRun(false,true)
+                if (csbRunWalk.progress == 0f) manageEnableButtonsRun(false, false)
+                else manageEnableButtonsRun(false, true)
 
                 tvRunningTime.text =
                     getFormattedStopWatch((csbRunWalk.progress.toInt() * 1000).toLong()).subSequence(
@@ -429,6 +438,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 var lySettingsVolumesSpace = findViewById<LinearLayout>(R.id.lySettingsVolumesSpace)
                 setHeightLinearLayout(lySettingsVolumesSpace, 600)
             }
+            TIME_RUNNING = getSecFromWatch(tvRunningTime.text.toString())
 
 
         } else {
@@ -587,6 +597,23 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     fun manageRun() {
 
+
+        if (timeInSeconds.toInt() == 0) {
+
+            fbCamara.isVisible = true
+
+            swIntervalMode.isClickable = false
+            npDurationInterval.isEnabled = false
+            csbRunWalk.isEnabled = false
+
+            swChallenges.isClickable = false
+            npChallengeDistance.isEnabled = false
+            npChallengeDurationHH.isEnabled = false
+            npChallengeDurationMM.isEnabled = false
+            npChallengeDurationSS.isEnabled = false
+
+            tvChrono.setTextColor(ContextCompat.getColor(this, R.color.chrono_running))
+        }
         if (!startButtonClicked) {
             startButtonClicked = true
             startTime()
@@ -621,7 +648,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 btStart.background = getDrawable(R.drawable.circle_background_toplay)
                 btStartLabel.setText(R.string.start)
             }
-        }else{
+        } else {
             btStart.background = getDrawable(R.drawable.circle_background_todisable)
         }
 
@@ -640,6 +667,12 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private var chronometer: Runnable = object : Runnable {
         override fun run() {
             try {
+                if (swIntervalMode.isChecked){
+                    checkStopRun(timeInSeconds)
+                    checkNewRound(timeInSeconds)
+                }
+
+
                 timeInSeconds += 1
                 updateStopWatchView()
             } finally {
@@ -651,6 +684,118 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private fun updateStopWatchView() {
         tvChrono.text = getFormattedStopWatch(timeInSeconds * 1000)
     }
+
+    private fun resetClicked() {
+        resetVariablesRun()
+        resetTimeView()
+        resetInterface()
+    }
+
+    private fun resetVariablesRun() {
+        timeInSeconds = 0
+        rounds = 1
+        initStopWatch()
+    }
+
+    private fun resetTimeView() {
+
+        manageEnableButtonsRun(false, true)
+        //val btStart: LinearLayout = findViewById(R.id.btStart)
+        tvChrono.setTextColor(ContextCompat.getColor(this, R.color.white))
+    }
+
+    private fun resetInterface() {
+
+        fbCamara.isVisible = false
+
+        val tvCurrentDistance = findViewById<TextView>(R.id.tvCurrentDistance)
+        val tvCurrentAvgSpeed = findViewById<TextView>(R.id.tvCurrentAvgSpeed)
+        val tvCurrentSpeed = findViewById<TextView>(R.id.tvCurrentSpeed)
+
+        tvCurrentDistance.text = "0.0"
+        tvCurrentAvgSpeed.text = "0.0"
+        tvCurrentSpeed.text = "0.0"
+
+        tvDistanceRecord.setTextColor(ContextCompat.getColor(this, R.color.gray_dark))
+        tvAvgSpeedRecord.setTextColor(ContextCompat.getColor(this, R.color.gray_dark))
+        tvMaxSpeedRecord.setTextColor(ContextCompat.getColor(this, R.color.gray_dark))
+
+
+        csbCurrentDistance.progress = 0f
+        csbCurrentAvgSpeed.progress = 0f
+        csbCurrentSpeed.progress = 0f
+        csbCurrentMaxSpeed.progress = 0f
+
+        val lyChronoProgressBg = findViewById<LinearLayout>(R.id.lyChronoProgressBg)
+        val lyRoundProgressBg = findViewById<LinearLayout>(R.id.lyRoundProgressBg)
+        lyChronoProgressBg.translationX = -widthAnimations.toFloat()
+        lyRoundProgressBg.translationX = -widthAnimations.toFloat()
+
+
+        swIntervalMode.isClickable = true
+        npDurationInterval.isEnabled = true
+        csbRunWalk.isEnabled = true
+
+        swChallenges.isClickable = true
+        npChallengeDistance.isEnabled = true
+        npChallengeDurationHH.isEnabled = true
+        npChallengeDurationMM.isEnabled = true
+        npChallengeDurationSS.isEnabled = true
+    }
+
+    private fun updateProgressBarRound(secs:Long){
+
+        var s = secs.toInt()
+        while (s>=ROUND_INTERVAL) s-=ROUND_INTERVAL
+        s++
+
+        var lyRoundProgressBg = findViewById<LinearLayout>(R.id.lyRoundProgressBg)
+        if (tvChrono.getCurrentTextColor() == ContextCompat.getColor(this, R.color.chrono_running)){
+
+            var movement = -1 * (widthAnimations-(s*widthAnimations/TIME_RUNNING)).toFloat()
+            animateViewofFloat(lyRoundProgressBg, "translationX", movement, 1000L)
+        }
+        if (tvChrono.getCurrentTextColor() == ContextCompat.getColor(this, R.color.chrono_walking)){
+            s-= TIME_RUNNING
+            var movement = -1 * (widthAnimations-(s*widthAnimations/(ROUND_INTERVAL-TIME_RUNNING))).toFloat()
+            animateViewofFloat(lyRoundProgressBg, "translationX", movement, 1000L)
+
+        }
+    }
+
+    private fun checkStopRun(Secs:Long){
+        var secAux:Long = Secs
+        while (secAux.toInt()>ROUND_INTERVAL)secAux-= ROUND_INTERVAL
+
+        if (secAux.toInt()== TIME_RUNNING){
+            tvChrono.setTextColor(ContextCompat.getColor(this,R.color.chrono_walking))
+
+            var lyRoundProgressBg =  findViewById<LinearLayout>(R.id.lyRoundProgressBg)
+            lyRoundProgressBg.setBackgroundColor(ContextCompat.getColor(this,R.color.chrono_walking))
+            lyRoundProgressBg.translationX = -widthAnimations.toFloat()
+        }
+        else
+            updateProgressBarRound(Secs)
+    }
+
+
+    private fun checkNewRound(Secs:Long){
+        if (Secs.toInt() % ROUND_INTERVAL == 0 && Secs.toInt()>0){
+            val tvRounds: TextView = findViewById(R.id.tvRounds)
+            rounds++
+            tvRounds.text = "Round $rounds"
+
+            tvChrono.setTextColor(ContextCompat.getColor(this, R.color.chrono_running))
+            val lyRoundProgressBg = findViewById<LinearLayout>(R.id.lyRoundProgressBg)
+            lyRoundProgressBg.setBackgroundColor(ContextCompat.getColor(this,R.color.chrono_running))
+            lyRoundProgressBg.translationX = -widthAnimations.toFloat()
+        }
+        else
+            updateProgressBarRound(Secs)
+
+    }
+
+
 }
 
 
