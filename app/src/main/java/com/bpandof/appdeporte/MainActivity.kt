@@ -32,6 +32,7 @@ import com.bpandof.appdeporte.Utility.animateViewofInt
 import com.bpandof.appdeporte.Utility.animateViewofFloat
 import com.bpandof.appdeporte.Utility.getFormattedStopWatch
 import com.bpandof.appdeporte.Utility.getSecFromWatch
+import com.google.android.gms.dynamic.IFragmentWrapper
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import io.grpc.internal.SharedResourceHolder.Resource
 import kotlinx.coroutines.Runnable
@@ -45,6 +46,12 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private var rounds: Int = 1
 
     private var startButtonClicked = false
+
+    //VARIABLES BPANDOF
+    private var isRunning: Boolean = false
+    private var isWalking: Boolean = false
+
+    //
 
     private var widthScreenPixels: Int = 0
     private var heightScreenPixels: Int = 0
@@ -249,11 +256,12 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         npDurationInterval.setFormatter(NumberPicker.Formatter { i -> String.format("%02d", i) })
 
         npDurationInterval.setOnValueChangedListener { picker, oldVal, newVal ->
-            csbRunWalk.max = (newVal*60).toFloat()
-            csbRunWalk.progress = csbRunWalk.max/2
+            csbRunWalk.max = (newVal * 60).toFloat()
+            csbRunWalk.progress = csbRunWalk.max / 2
 
 
-            tvRunningTime.text = getFormattedStopWatch(((newVal*60/2)*1000).toLong()).subSequence(3,8)
+            tvRunningTime.text =
+                getFormattedStopWatch(((newVal * 60 / 2) * 1000).toLong()).subSequence(3, 8)
             tvWalkingTime.text = tvRunningTime.text
 
             ROUND_INTERVAL = newVal * 60
@@ -270,7 +278,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 progress: Float,
                 fromUser: Boolean
             ) {
-                if (fromUser){
+                if (fromUser) {
                     var STEPS_UX: Int = 15
                     if (ROUND_INTERVAL > 600) STEPS_UX = 60
                     if (ROUND_INTERVAL > 1800) STEPS_UX = 300
@@ -280,11 +288,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     var limit = 60
                     if (ROUND_INTERVAL > 1800) limit = 300
 
-                    if (p%STEPS_UX != 0 && progress != csbRunWalk.max){
+                    if (p % STEPS_UX != 0 && progress != csbRunWalk.max) {
                         while (p >= limit) p -= limit
                         while (p >= STEPS_UX) p -= STEPS_UX
-                        if (STEPS_UX-p > STEPS_UX/2) set = -1 * p
-                        else set = STEPS_UX-p
+                        if (STEPS_UX - p > STEPS_UX / 2) set = -1 * p
+                        else set = STEPS_UX - p
 
                         if (csbRunWalk.progress + set > csbRunWalk.max)
                             csbRunWalk.progress = csbRunWalk.max
@@ -295,16 +303,22 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 if (csbRunWalk.progress == 0f) manageEnableButtonsRun(false, false)
                 else manageEnableButtonsRun(false, true)
 
-                tvRunningTime.text = getFormattedStopWatch((csbRunWalk.progress.toInt() *1000).toLong()).subSequence(3,8)
-                tvWalkingTime.text = getFormattedStopWatch(((ROUND_INTERVAL- csbRunWalk.progress.toInt())*1000).toLong()).subSequence(3,8)
+                tvRunningTime.text =
+                    getFormattedStopWatch((csbRunWalk.progress.toInt() * 1000).toLong()).subSequence(
+                        3,
+                        8
+                    )
+                tvWalkingTime.text =
+                    getFormattedStopWatch(((ROUND_INTERVAL - csbRunWalk.progress.toInt()) * 1000).toLong()).subSequence(
+                        3,
+                        8
+                    )
                 TIME_RUNNING = getSecFromWatch(tvRunningTime.text.toString())
             }
 
 
-
             override fun onStopTrackingTouch(seekBar: CircularSeekBar?) {
             }
-
 
 
             @SuppressLint("SetTextI18n")
@@ -367,34 +381,99 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     }
 
-    private fun setVolumes(){
-        sbHardVolume.setOnSeekBarChangeListener(object: SeekBar.OnSeekBarChangeListener{
+    private fun setVolumes() {
+        sbHardVolume.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(p0: SeekBar?, i: Int, p2: Boolean) {
-                mpHard?.setVolume(i/100.0f, i/100.0f)
+                mpHard?.setVolume(i / 100.0f, i / 100.0f)
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
 
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
-        sbSoftVolume.setOnSeekBarChangeListener(object: SeekBar.OnSeekBarChangeListener{
+        sbSoftVolume.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(p0: SeekBar?, i: Int, p2: Boolean) {
-                mpSoft?.setVolume(i/100.0f, i/100.0f)
+                mpSoft?.setVolume(i / 100.0f, i / 100.0f)
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
 
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
-        sbNotifyVolume.setOnSeekBarChangeListener(object: SeekBar.OnSeekBarChangeListener{
+        sbNotifyVolume.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(p0: SeekBar?, i: Int, p2: Boolean) {
-                mpNotify?.setVolume(i/100.0f, i/100.0f)
+                mpNotify?.setVolume(i / 100.0f, i / 100.0f)
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
 
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
+    }
+
+    private fun updateTimesTrack(timesH: Boolean, timesS: Boolean) {
+        val sbHardTrack: SeekBar = findViewById(R.id.sbHardTrack)
+        val sbSoftTrack: SeekBar = findViewById(R.id.sbSoftTrack)
+        if (timesH) {
+            val tvHardPosition = findViewById<TextView>(R.id.tvHardPosition)
+            val tvHardRemaining = findViewById<TextView>(R.id.tvHardRemaining)
+            tvHardPosition.text = getFormattedStopWatch(sbHardTrack.progress.toLong())
+            tvHardRemaining.text =
+                "-" + getFormattedStopWatch(mpHard!!.duration.toLong() - sbHardTrack.progress.toLong())
+        }
+        if (timesS) {
+            val tvSoftPosition = findViewById<TextView>(R.id.tvSoftPosition)
+            val tvSoftRemaining = findViewById<TextView>(R.id.tvSoftRemaining)
+            tvSoftPosition.text = getFormattedStopWatch(sbSoftTrack.progress.toLong())
+            tvSoftRemaining.text =
+                "-" + getFormattedStopWatch(mpSoft!!.duration.toLong() - sbSoftTrack.progress.toLong())
+        }
+    }
+
+    private fun setProgressTracks() {
+        val sbHardTrack: SeekBar = findViewById(R.id.sbHardTrack)
+        val sbSoftTrack: SeekBar = findViewById(R.id.sbSoftTrack)
+        sbHardTrack.max = mpHard!!.duration
+        sbSoftTrack.max = mpSoft!!.duration
+        updateTimesTrack(true, true)
+
+        sbHardTrack.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(p0: SeekBar?, i: Int, fromUser: Boolean) {
+                if (fromUser) {
+                    mpHard?.pause()
+                    mpHard?.seekTo(i)
+                    if (isRunning){
+                        mpHard?.start()
+                        updateTimesTrack(true, false)
+                    }
+                }
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+
+        })
+
+        sbSoftTrack.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(p0: SeekBar?, i: Int, fromUser: Boolean) {
+                if (fromUser) {
+                    mpSoft?.pause()
+                    mpSoft?.seekTo(i)
+                    if (isWalking){
+                        mpSoft?.start()
+                        updateTimesTrack(false, true)
+                    }
+
+                }
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+
+        })
+
     }
 
     private fun initMusic() {
@@ -410,10 +489,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         sbNotifyVolume = findViewById(R.id.sbNotifyVolume)
         setVolumes()
 
-        //setProgressTracks()
+        setProgressTracks()
     }
 
-    private fun notifySound(){
+    private fun notifySound() {
         mpNotify?.start()
     }
 
@@ -539,11 +618,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     fun showDuration(v: View) {
-        showChallege("duration")
+        if(timeInSeconds.toInt() == 0)("duration")
     }
 
     fun showDistance(v: View) {
-        showChallege("distance")
+        if(timeInSeconds.toInt() == 0)showChallege("distance")
     }
 
     fun showChallege(option: String) {
@@ -656,7 +735,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
 
         if (timeInSeconds.toInt() == 0) {
-
             fbCamara.isVisible = true
 
             swIntervalMode.isClickable = false
@@ -672,18 +750,34 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             tvChrono.setTextColor(ContextCompat.getColor(this, R.color.chrono_running))
 
             mpHard?.start()
+            isRunning = true
+            isWalking = false
         }
         if (!startButtonClicked) {
             startButtonClicked = true
             startTime()
             manageEnableButtonsRun(false, true)
 
+            if (isRunning) {
+                mpHard?.start()
+            }
+            if (isWalking) {
+                mpSoft?.start()
+            }
+
         } else {
             startButtonClicked = false
             stopTime()
             manageEnableButtonsRun(true, true)
-            mpHard?.pause()
-            mpSoft?.pause()
+
+            if (isRunning) {
+                mpHard?.pause()
+            }
+            if (isWalking) {
+                mpSoft?.pause()
+            }
+
+
         }
     }
 
@@ -729,6 +823,16 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private var chronometer: Runnable = object : Runnable {
         override fun run() {
             try {
+                if (mpHard!!.isPlaying) {
+                    val sbHardTrack: SeekBar = findViewById(R.id.sbHardTrack)
+                    sbHardTrack.progress = mpHard!!.currentPosition
+                }
+                if (mpSoft!!.isPlaying) {
+                    val sbSoftTrack: SeekBar = findViewById(R.id.sbSoftTrack)
+                    sbSoftTrack.progress = mpSoft!!.currentPosition
+                }
+
+                updateTimesTrack(true, true)
                 if (swIntervalMode.isChecked) {
                     checkStopRun(timeInSeconds)
                     checkNewRound(timeInSeconds)
@@ -756,6 +860,13 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private fun resetVariablesRun() {
         timeInSeconds = 0
         rounds = 1
+
+        isRunning = false
+        isWalking = false
+
+        challengeDistance = 0f
+        challengeDuration = 0
+
         initStopWatch()
     }
 
@@ -820,6 +931,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
             var movement = -1 * (widthAnimations - (s * widthAnimations / TIME_RUNNING)).toFloat()
             animateViewofFloat(lyRoundProgressBg, "translationX", movement, 1000L)
+            isRunning = true
+            isWalking = false
         }
         if (tvChrono.getCurrentTextColor() == ContextCompat.getColor(
                 this,
@@ -830,6 +943,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             var movement =
                 -1 * (widthAnimations - (s * widthAnimations / (ROUND_INTERVAL - TIME_RUNNING))).toFloat()
             animateViewofFloat(lyRoundProgressBg, "translationX", movement, 1000L)
+            isRunning = false
+            isWalking = true
 
         }
     }
@@ -849,8 +964,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 )
             )
             lyRoundProgressBg.translationX = -widthAnimations.toFloat()
+            //isRunning = false
             mpHard?.pause()
             notifySound()
+            //isWalking = true
             mpSoft?.start()
 
 
@@ -874,9 +991,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 )
             )
             lyRoundProgressBg.translationX = -widthAnimations.toFloat()
-
+            //isWalking = false
             mpSoft?.pause()
             notifySound()
+            //isRunning = true
             mpHard?.start()
         } else
             updateProgressBarRound(Secs)
