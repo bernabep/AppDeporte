@@ -56,4 +56,5 @@ dependencies {
     implementation 'com.facebook.android:facebook-android-sdk:9.1.1'
     implementation 'com.facebook.android:facebook-login:latest.release'
     implementation 'me.tankery.lib:circularSeekBar:1.4.1'
+    implementation 'com.google.android.gms:play-services-location:21.0.0'
 }

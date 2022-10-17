@@ -57,6 +57,11 @@
     <string name="orderby_avgspeedAZ">Vel. Prom. (Menores primero)</string>
     <string name="orderby_maxspeedAZ">Vel. Máx. (Menores primero)</string>
 
+    <string name="alertActivationGPSTitle">Permitir acceso a ubicación</string>
+    <string name="alertActivationGPSDescription">Si desea obtener datos de su carrera como la distancia recorrida y la velocidad debe activar el GPS</string>
+    <string name="ignoreActivationGPS">Ignorar</string>
+    <string name="aceptActivationGPS">Activar</string>
+
     <string name="start">VAVAVA</string>
     <string name="stop">TATE QUIETO</string>
     <string name="finish">Finalizar</string>
