@@ -44,6 +44,7 @@ import com.bpandof.appdeporte.Utility.animateViewofInt
 import com.bpandof.appdeporte.Utility.animateViewofFloat
 import com.bpandof.appdeporte.Utility.getFormattedStopWatch
 import com.bpandof.appdeporte.Utility.getSecFromWatch
+import com.bpandof.appdeporte.Utility.roundNumber
 import com.google.android.gms.dynamic.IFragmentWrapper
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
@@ -129,13 +130,25 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private lateinit var sbSoftTrack: SeekBar
 
     private var ROUND_INTERVAL = 300
+    private var hardTime : Boolean = true
     private var TIME_RUNNING: Int = 0
 
     private lateinit var lyPopupRun: LinearLayout
 
-    private var activateGPS: Boolean = true
+    private var activatedGPS: Boolean = true
     private lateinit var fusedLocationClient: FusedLocationProviderClient
-    private val PERMISION_ID = 42
+    private val PERMISSION_ID = 42
+    private var flagSavedLocation = false
+    private var latitude: Double = 0.0
+    private var longitude: Double = 0.0
+    private var init_lt: Double = 0.0
+    private var init_ln: Double = 0.0
+
+    private var distance: Double = 0.0
+    private var maxSpeed: Double = 0.0
+    private var avgSpeed: Double = 0.0
+    private var speed: Double = 0.0
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -217,13 +230,13 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     private fun hideLayouts() {
         var lyMap = findViewById<LinearLayout>(R.id.lyMap)
-        var lyFragmenMap = findViewById<LinearLayout>(R.id.lyFragmentMap)
-        var lyIntervalModeSpace = findViewById<LinearLayout>(R.id.lyIntervalModeSpace)
-        var lyIntervalMode = findViewById<LinearLayout>(R.id.lyIntervalMode)
-        var lyChallengesSpace = findViewById<LinearLayout>(R.id.lyChallengesSpace)
-        var lyChallenges = findViewById<LinearLayout>(R.id.lyChallenges)
-        var lySettingsVolumesSpace = findViewById<LinearLayout>(R.id.lySettingsVolumesSpace)
-        var lySettingsVolumes = findViewById<LinearLayout>(R.id.lySettingsVolumes)
+        val lyFragmentMap = findViewById<LinearLayout>(R.id.lyFragmentMap)
+        val lyIntervalModeSpace = findViewById<LinearLayout>(R.id.lyIntervalModeSpace)
+        val lyIntervalMode = findViewById<LinearLayout>(R.id.lyIntervalMode)
+        val lyChallengesSpace = findViewById<LinearLayout>(R.id.lyChallengesSpace)
+        val lyChallenges = findViewById<LinearLayout>(R.id.lyChallenges)
+        val lySettingsVolumesSpace = findViewById<LinearLayout>(R.id.lySettingsVolumesSpace)
+        val lySettingsVolumes = findViewById<LinearLayout>(R.id.lySettingsVolumes)
         var lySoftTrack = findViewById<LinearLayout>(R.id.lySoftTrack)
         var lySoftVolume = findViewById<LinearLayout>(R.id.lySoftVolume)
 
@@ -235,7 +248,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         setHeightLinearLayout(lySoftTrack, 0)
         setHeightLinearLayout(lySoftVolume, 0)
 
-        lyFragmenMap.translationY = -300f
+        lyFragmentMap.translationY = -300f
         lyIntervalMode.translationY = -300f
         lyChallenges.translationY = -300f
         lySettingsVolumes.translationY = -300f
@@ -330,9 +343,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                         else
                             csbRunWalk.progress = csbRunWalk.progress + set
                     }
+                    if (csbRunWalk.progress == 0f) manageEnableButtonsRun(false, false)
+                    else manageEnableButtonsRun(false, true)
                 }
-                if (csbRunWalk.progress == 0f) manageEnableButtonsRun(false, false)
-                else manageEnableButtonsRun(false, true)
 
                 tvRunningTime.text =
                     getFormattedStopWatch((csbRunWalk.progress.toInt() * 1000).toLong()).subSequence(
@@ -352,7 +365,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             }
 
 
-            @SuppressLint("SetTextI18n")
             override fun onStartTrackingTouch(seekBar: CircularSeekBar?) {
             }
         })
@@ -401,11 +413,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             getChallengeDuration(newVal, npChallengeDurationMM.value, npChallengeDurationSS.value)
         }
 
-        npChallengeDurationHH.setOnValueChangedListener { picker, oldVal, newVal ->
+        npChallengeDurationMM.setOnValueChangedListener { picker, oldVal, newVal ->
             getChallengeDuration(npChallengeDurationHH.value, newVal, npChallengeDurationSS.value)
         }
 
-        npChallengeDurationHH.setOnValueChangedListener { picker, oldVal, newVal ->
+        npChallengeDurationSS.setOnValueChangedListener { picker, oldVal, newVal ->
             getChallengeDuration(npChallengeDurationHH.value, npChallengeDurationMM.value, newVal)
         }
 
@@ -442,22 +454,19 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         })
     }
 
-    private fun updateTimesTrack(timesH: Boolean, timesS: Boolean) {
-        //val sbHardTrack: SeekBar = findViewById(R.id.sbHardTrack)
-        //val sbSoftTrack: SeekBar = findViewById(R.id.sbSoftTrack)
-        if (timesH) {
+    private fun updateTimesTrack(timesH: Boolean, timesS: Boolean){
+
+        if (timesH){
             val tvHardPosition = findViewById<TextView>(R.id.tvHardPosition)
             val tvHardRemaining = findViewById<TextView>(R.id.tvHardRemaining)
-            tvHardPosition.text = getFormattedStopWatch(sbHardTrack.progress.toLong())
-            tvHardRemaining.text =
-                "-" + getFormattedStopWatch(mpHard!!.duration.toLong() - sbHardTrack.progress.toLong())
+            tvHardPosition.text = getFormattedStopWatch(mpHard!!.currentPosition.toLong())
+            tvHardRemaining.text = "-" + getFormattedStopWatch( mpHard!!.duration.toLong() - sbHardTrack.progress.toLong())
         }
-        if (timesS) {
+        if (timesS){
             val tvSoftPosition = findViewById<TextView>(R.id.tvSoftPosition)
             val tvSoftRemaining = findViewById<TextView>(R.id.tvSoftRemaining)
-            tvSoftPosition.text = getFormattedStopWatch(sbSoftTrack.progress.toLong())
-            tvSoftRemaining.text =
-                "-" + getFormattedStopWatch(mpSoft!!.duration.toLong() - sbSoftTrack.progress.toLong())
+            tvSoftPosition.text = getFormattedStopWatch(mpSoft!!.currentPosition.toLong())
+            tvSoftRemaining.text = "-" + getFormattedStopWatch( mpSoft!!.duration.toLong() - sbSoftTrack.progress.toLong())
         }
     }
 
@@ -466,6 +475,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         //val sbSoftTrack: SeekBar = findViewById(R.id.sbSoftTrack)
         sbHardTrack.max = mpHard!!.duration
         sbSoftTrack.max = mpSoft!!.duration
+        sbHardTrack.isEnabled = false
+        sbSoftTrack.isEnabled = false
         updateTimesTrack(true, true)
 
         sbHardTrack.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -475,6 +486,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     mpHard?.seekTo(i)
                     if (isRunning) {
                         mpHard?.start()
+                        if (!(timeInSeconds > 0L && hardTime && startButtonClicked)) mpHard?.pause()
                         updateTimesTrack(true, false)
                     }
                 }
@@ -493,6 +505,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     mpSoft?.seekTo(i)
                     if (isWalking) {
                         mpSoft?.start()
+                        if (!(timeInSeconds > 0L && !hardTime && startButtonClicked)) mpSoft?.pause()
                         updateTimesTrack(false, true)
                     }
 
@@ -578,7 +591,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         startActivity(intent)
     }
 
-    fun inflateIntervalMode(v: View) {
+    private fun inflateIntervalMode() {
         val lyIntervalMode = findViewById<LinearLayout>(R.id.lyIntervalMode)
         val lyIntervalModeSpace = findViewById<LinearLayout>(R.id.lyIntervalModeSpace)
         var lySoftTrack = findViewById<LinearLayout>(R.id.lySoftTrack)
@@ -608,6 +621,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 var lySettingsVolumesSpace = findViewById<LinearLayout>(R.id.lySettingsVolumesSpace)
                 setHeightLinearLayout(lySettingsVolumesSpace, 600)
             }
+            tvRunningTime = findViewById<TextView>(R.id.tvRunningTime)
             TIME_RUNNING = getSecFromWatch(tvRunningTime.text.toString())
 
 
@@ -628,7 +642,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }
     }
 
-    fun inflateChallenges(v: View) {
+    fun callInflateIntervalMode(v: View) {
+        inflateIntervalMode()
+    }
+    fun inflateChallenges(v:View){
         val lyChallengesSpace = findViewById<LinearLayout>(R.id.lyChallengesSpace)
         val lyChallenges = findViewById<LinearLayout>(R.id.lyChallenges)
         if (swChallenges.isChecked) {
@@ -652,7 +669,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     fun showDuration(v: View) {
-        if (timeInSeconds.toInt() == 0) ("duration")
+        if (timeInSeconds.toInt() == 0) showChallege("duration")
     }
 
     fun showDistance(v: View) {
@@ -729,7 +746,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         var seconds: String = ss.toString()
         if (ss < 10) seconds = "0" + seconds
 
-        challengeDuration = getSecFromWatch("$hours:$minutes:$seconds")
+        //correccion challengeDuration = getSecFromWatch("$hours:$minutes:$seconds")
+        challengeDuration = getSecFromWatch("${hours}:${minutes}:${seconds}")
 
     }
 
@@ -773,7 +791,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             this, arrayOf(
                 Manifest.permission.ACCESS_COARSE_LOCATION,
                 Manifest.permission.ACCESS_FINE_LOCATION
-            ), PERMISION_ID
+            ), PERMISSION_ID
         )
     }
 
@@ -781,7 +799,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         ContextCompat.checkSelfPermission(baseContext, it) == PackageManager.PERMISSION_GRANTED
     }
 
-    private fun isLocationsEnabled(): Boolean {
+    private fun isLocationEnabled(): Boolean {
         var locationManager: LocationManager =
             getSystemService(Context.LOCATION_SERVICE) as LocationManager
         return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
@@ -810,22 +828,25 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private fun manageLocation() {
         if (checkPermission()) {
 
-            if (isLocationsEnabled()) {
+            if (isLocationEnabled()) {
                 if (ActivityCompat.checkSelfPermission(
                         this,
                         Manifest.permission.ACCESS_FINE_LOCATION
-                    ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                    ) ==
+                    PackageManager.PERMISSION_GRANTED
+                    && ActivityCompat.checkSelfPermission(
                         this,
                         Manifest.permission.ACCESS_COARSE_LOCATION
-                    ) != PackageManager.PERMISSION_GRANTED
+                    ) ==
+                    PackageManager.PERMISSION_GRANTED
                 ) {
+
+
                     fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                         requestNewLocationData()
                     }
                 }
-            }
-            else activationLocation()
-
+            } else activationLocation()
         } else requestPermissionLocation()
     }
 
@@ -838,14 +859,85 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         mLocationRequest.numUpdates = 1
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
-        fusedLocationClient.requestLocationUpdates(mLocationRequest,mLocationCallBack,Looper.myLooper())
+        fusedLocationClient.requestLocationUpdates(
+            mLocationRequest,
+            mLocationCallBack,
+            Looper.myLooper()
+        )
 
     }
 
     private val mLocationCallBack = object : LocationCallback() {
         override fun onLocationResult(locationResult: LocationResult) {
             var mLastLocation: Location? = locationResult.lastLocation
-            mLastLocation.
+            init_lt = mLastLocation!!.latitude
+            init_ln = mLastLocation.longitude
+            if (timeInSeconds > 0L) registerNewLocation(mLastLocation)
+        }
+    }
+
+    private fun registerNewLocation(location: Location) {
+        var new_latitude: Double = location.latitude
+        var new_longitude: Double = location.longitude
+
+        if (flagSavedLocation) {
+            if (timeInSeconds >= INTERVAL_LOCATION) {
+                var distanceInterval = calculateDistance(new_latitude, new_longitude)
+
+                updateSpeeds(distanceInterval)
+                refreshInterfaceData()
+            }
+        }
+        latitude = new_latitude
+        longitude = new_longitude
+    }
+
+    private fun calculateDistance(n_lt: Double, n_lg: Double): Double {
+        val radioTierra = 6371.0 //en kilómetros
+
+        val dLat = Math.toRadians(n_lt - latitude)
+        val dLng = Math.toRadians(n_lg - longitude)
+        val sindLat = Math.sin(dLat / 2)
+        val sindLng = Math.sin(dLng / 2)
+        val va1 =
+            Math.pow(sindLat, 2.0) + (Math.pow(sindLng, 2.0)
+                    * Math.cos(Math.toRadians(latitude)) * Math.cos(
+                Math.toRadians(n_lt)
+            ))
+        val va2 = 2 * Math.atan2(Math.sqrt(va1), Math.sqrt(1 - va1))
+        var n_distance = radioTierra * va2
+
+        //if (n_distance < LIMIT_DISTANCE_ACCEPTED) distance += n_distance
+
+        distance += n_distance
+        return n_distance
+    }
+
+    private fun updateSpeeds(d: Double) {
+        speed = ((d * 1000) / INTERVAL_LOCATION) * 3.6
+        if (speed > maxSpeed) maxSpeed = speed
+        avgSpeed = ((distance * 1000) / timeInSeconds) * 3.6
+    }
+
+    private fun refreshInterfaceData(){
+        var tvCurrentDistance = findViewById<TextView>(R.id.tvCurrentDistance)
+        var tvCurrentAvgSpeed = findViewById<TextView>(R.id.tvCurrentAvgSpeed)
+        var tvCurrentSpeed = findViewById<TextView>(R.id.tvCurrentSpeed)
+        tvCurrentDistance.text = roundNumber(distance.toString(), 2)
+        tvCurrentAvgSpeed.text = roundNumber(avgSpeed.toString(), 1)
+        tvCurrentSpeed.text = roundNumber(speed.toString(), 1)
+
+
+        csbCurrentDistance.progress = distance.toFloat()
+
+        csbCurrentAvgSpeed.progress = avgSpeed.toFloat()
+
+        csbCurrentSpeed.progress = speed.toFloat()
+
+        if (speed == maxSpeed){
+            csbCurrentMaxSpeed.max = csbRecordSpeed.max
+            csbCurrentMaxSpeed.progress = speed.toFloat()
+            csbCurrentSpeed.max = csbRecordSpeed.max
         }
     }
 
@@ -854,7 +946,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun manageStartStop() {
-        if (timeInSeconds == 0L && isLocationsEnabled() == false) {
+        if (timeInSeconds == 0L && isLocationEnabled() == false) {
             AlertDialog.Builder(this)
                 .setTitle(getString(R.string.alertActivationGPSTitle))
                 .setMessage(getString(R.string.alertActivationGPSDescription))
@@ -864,7 +956,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     })
                 .setNegativeButton(R.string.ignoreActivationGPS,
                     DialogInterface.OnClickListener { dialog, wich ->
-                        activateGPS = false
+                        activatedGPS = false
                         manageRun()
                     })
 
@@ -891,10 +983,25 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             npChallengeDurationSS.isEnabled = false
 
             tvChrono.setTextColor(ContextCompat.getColor(this, R.color.chrono_running))
+            //correccion
+            sbHardTrack.isEnabled = true
+            sbSoftTrack.isEnabled = true
+            //correccion
+
 
             mpHard?.start()
             isRunning = true
             isWalking = false
+
+            if (activatedGPS) {
+                flagSavedLocation = false
+                manageLocation()
+                flagSavedLocation = true
+                manageLocation()
+
+            }
+
+
         }
         if (!startButtonClicked) {
             startButtonClicked = true
@@ -977,7 +1084,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
                 updateTimesTrack(true, true)
 
-                if (activateGPS && timeInSeconds.toInt() % INTERVAL_LOCATION == 0) manageLocation()
+                if (activatedGPS && timeInSeconds.toInt() % INTERVAL_LOCATION == 0) manageLocation()
 
                 if (swIntervalMode.isChecked) {
                     checkStopRun(timeInSeconds)
@@ -1013,6 +1120,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         challengeDistance = 0f
         challengeDuration = 0
 
+        activatedGPS = true
+        flagSavedLocation = false
+
         initStopWatch()
     }
 
@@ -1045,6 +1155,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         csbCurrentSpeed.progress = 0f
         csbCurrentMaxSpeed.progress = 0f
 
+        //correccion
+        val tvRounds: TextView = findViewById(R.id.tvRounds) as TextView
+        tvRounds.text = getString(R.string.rounds)
+        //correccion
+
         val lyChronoProgressBg = findViewById<LinearLayout>(R.id.lyChronoProgressBg)
         val lyRoundProgressBg = findViewById<LinearLayout>(R.id.lyRoundProgressBg)
         lyChronoProgressBg.translationX = -widthAnimations.toFloat()
@@ -1066,7 +1181,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         sbHardTrack.isEnabled = false
         sbSoftTrack.isEnabled = false
 
-        activateGPS = true
+
     }
 
     private fun updateProgressBarRound(secs: Long) {
@@ -1117,10 +1232,13 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 )
             )
             lyRoundProgressBg.translationX = -widthAnimations.toFloat()
+
             //isRunning = false
             mpHard?.pause()
             notifySound()
             //isWalking = true
+
+
             mpSoft?.start()
 
 

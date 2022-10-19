@@ -57,4 +57,17 @@ object Utility {
         }
     }
 
+    fun roundNumber(data: String, decimals: Int) : String{
+        var d : String = data
+        var p= d.indexOf(".", 0)
+
+        if (p != null){
+            var limit: Int = p+decimals +1
+            if (d.length <= p+decimals+1) limit = d.length //-1
+            d = d.subSequence(0, limit).toString()
+        }
+
+        return d
+    }
+
 }
