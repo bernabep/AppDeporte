@@ -455,7 +455,7 @@
                             android:translationY="-300dp"
                             android:gravity="left"
                             android:orientation="vertical">
-                            <!--
+
                             <fragment
                                 android:id="@+id/fragmentMap"
                                 android:name="com.google.android.gms.maps.SupportMapFragment"
@@ -469,7 +469,6 @@
                                 map:uiTiltGestures="true"
                                 map:uiZoomControls="true"
                                 map:uiZoomGestures="true"/>
-                            -->
 
                             <TextView
                                 android:id="@+id/tvMapCenter"
