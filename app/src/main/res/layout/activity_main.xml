@@ -431,7 +431,7 @@
                 android:paddingBottom="60dp"
                 android:gravity="center">
 
-                <!-- Map -->
+
                 <LinearLayout
                     android:id="@+id/lyMapContainer"
                     android:layout_width="match_parent"

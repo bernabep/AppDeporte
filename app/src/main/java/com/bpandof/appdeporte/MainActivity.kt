@@ -8,7 +8,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
-import android.location.LocationRequest
 import android.media.MediaPlayer
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -18,18 +17,16 @@ import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
-import android.widget.Button
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.NumberPicker
 import android.widget.SeekBar
-import android.widget.SeekBar.OnSeekBarChangeListener
 import android.widget.Switch
 import android.widget.TextView
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.content.getSystemService
 import androidx.core.view.GravityCompat
 import androidx.core.view.isVisible
 import androidx.drawerlayout.widget.DrawerLayout
@@ -45,18 +42,23 @@ import com.bpandof.appdeporte.Utility.animateViewofFloat
 import com.bpandof.appdeporte.Utility.getFormattedStopWatch
 import com.bpandof.appdeporte.Utility.getSecFromWatch
 import com.bpandof.appdeporte.Utility.roundNumber
-import com.google.android.gms.dynamic.IFragmentWrapper
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.LatLng
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import io.grpc.internal.SharedResourceHolder.Resource
 import kotlinx.coroutines.Runnable
 import me.tankery.lib.circularseekbar.CircularSeekBar
 
-class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
+class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener,
+    OnMapReadyCallback, GoogleMap.OnMyLocationButtonClickListener,
+    GoogleMap.OnMyLocationClickListener {
     companion object {
         val REQUIRED_PERMISSIONS_GPS =
             arrayOf(
@@ -130,14 +132,19 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private lateinit var sbSoftTrack: SeekBar
 
     private var ROUND_INTERVAL = 300
-    private var hardTime : Boolean = true
+    private var hardTime: Boolean = true
     private var TIME_RUNNING: Int = 0
 
     private lateinit var lyPopupRun: LinearLayout
 
+    private lateinit var map: GoogleMap
+    private var mapCentered = true
+
+    private val PERMISSION_ID = 42
+    private val LOCATION_PERMISSION_REQ_CODE = 1000
+
     private var activatedGPS: Boolean = true
     private lateinit var fusedLocationClient: FusedLocationProviderClient
-    private val PERMISSION_ID = 42
     private var flagSavedLocation = false
     private var latitude: Double = 0.0
     private var longitude: Double = 0.0
@@ -454,19 +461,21 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         })
     }
 
-    private fun updateTimesTrack(timesH: Boolean, timesS: Boolean){
+    private fun updateTimesTrack(timesH: Boolean, timesS: Boolean) {
 
-        if (timesH){
+        if (timesH) {
             val tvHardPosition = findViewById<TextView>(R.id.tvHardPosition)
             val tvHardRemaining = findViewById<TextView>(R.id.tvHardRemaining)
             tvHardPosition.text = getFormattedStopWatch(mpHard!!.currentPosition.toLong())
-            tvHardRemaining.text = "-" + getFormattedStopWatch( mpHard!!.duration.toLong() - sbHardTrack.progress.toLong())
+            tvHardRemaining.text =
+                "-" + getFormattedStopWatch(mpHard!!.duration.toLong() - sbHardTrack.progress.toLong())
         }
-        if (timesS){
+        if (timesS) {
             val tvSoftPosition = findViewById<TextView>(R.id.tvSoftPosition)
             val tvSoftRemaining = findViewById<TextView>(R.id.tvSoftRemaining)
             tvSoftPosition.text = getFormattedStopWatch(mpSoft!!.currentPosition.toLong())
-            tvSoftRemaining.text = "-" + getFormattedStopWatch( mpSoft!!.duration.toLong() - sbSoftTrack.progress.toLong())
+            tvSoftRemaining.text =
+                "-" + getFormattedStopWatch(mpSoft!!.duration.toLong() - sbSoftTrack.progress.toLong())
         }
     }
 
@@ -560,6 +569,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         initChallengeMode()
         initMusic()
         hidePopUpRun()
+
+        initMap()
+
     }
 
     fun callSignOut(view: View) {
@@ -645,7 +657,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     fun callInflateIntervalMode(v: View) {
         inflateIntervalMode()
     }
-    fun inflateChallenges(v:View){
+
+    fun inflateChallenges(v: View) {
         val lyChallengesSpace = findViewById<LinearLayout>(R.id.lyChallengesSpace)
         val lyChallenges = findViewById<LinearLayout>(R.id.lyChallenges)
         if (swChallenges.isChecked) {
@@ -779,6 +792,133 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }
     }
 
+    private fun initMap() {
+        createMapFragment()
+        var lyOpenerButton = findViewById<LinearLayout>(R.id.lyOpenerButton)
+        if (allPermissionsGrantedGPS()) lyOpenerButton.isEnabled = true
+        else lyOpenerButton.isEnabled = false
+    }
+
+    override fun onMyLocationButtonClick(): Boolean {
+        return false
+    }
+
+    override fun onMyLocationClick(p0: Location) {
+
+    }
+
+
+    private fun createMapFragment() {
+        val mapFragment = supportFragmentManager
+            .findFragmentById(R.id.fragmentMap) as SupportMapFragment?
+        mapFragment?.getMapAsync(this)
+    }
+
+    override fun onMapReady(googleMap: GoogleMap) {
+        map = googleMap
+        map.mapType = GoogleMap.MAP_TYPE_HYBRID
+        enableMyLocation()
+        map.setOnMyLocationButtonClickListener(this)
+        map.setOnMyLocationClickListener(this)
+        map.setOnMapLongClickListener { mapCentered = false }
+        map.setOnMapClickListener { mapCentered = false }
+        manageLocation()
+        centerMap(init_lt, init_ln)
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+            LOCATION_PERMISSION_REQ_CODE -> {
+                var lyOpenerButton = findViewById<LinearLayout>(R.id.lyOpenerButton)
+
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                    lyOpenerButton.isEnabled = true
+                else {
+                    var lyMap = findViewById<LinearLayout>(R.id.lyMap)
+                    if (lyMap.height > 0) {
+                        setHeightLinearLayout(lyMap, 0)
+
+                        var lyFragmentMap = findViewById<LinearLayout>(R.id.lyFragmentMap)
+                        lyFragmentMap.translationY = -300f
+
+                        var ivOpenClose = findViewById<ImageView>(R.id.ivOpenClose)
+                        ivOpenClose.rotation = 0f
+                    }
+
+                    lyOpenerButton.isEnabled = true
+
+
+                }
+
+            }
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun enableMyLocation() {
+        if (!::map.isInitialized) return
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED &&
+            ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+            requestPermissionLocation()
+            return
+        }
+            else map.isMyLocationEnabled = true
+
+    }
+
+    private fun centerMap(lt: Double, ln: Double){
+        val posMap = LatLng(lt, ln)
+        map.animateCamera(CameraUpdateFactory.newLatLngZoom(posMap, 16f), 1000, null)
+
+    }
+
+    fun changeTypeMap(v: View){
+        var ivTypeMap = findViewById<ImageView>(R.id.ivTypeMap)
+        if (map.mapType == GoogleMap.MAP_TYPE_HYBRID){
+            map.mapType = GoogleMap.MAP_TYPE_NORMAL
+            ivTypeMap.setImageResource(R.drawable.map_type_hybrid)
+        }
+        else{
+            map.mapType = GoogleMap.MAP_TYPE_HYBRID
+            ivTypeMap.setImageResource(R.drawable.map_type_normal)
+        }
+    }
+    fun callCenterMap(v: View){
+        mapCentered = true
+        if (latitude == 0.0) centerMap(init_lt, init_ln)
+        else centerMap(latitude, longitude)
+    }
+
+
+
+    fun callShowHideMap(v: View) {
+        if (allPermissionsGrantedGPS()) {
+            var lyMap = findViewById<LinearLayout>(R.id.lyMap)
+            var lyFragmentMap = findViewById<LinearLayout>(R.id.lyFragmentMap)
+            var ivOpenClose = findViewById<ImageView>(R.id.ivOpenClose)
+
+            if (lyMap.height == 0) {
+                setHeightLinearLayout(lyMap, 1157)
+                animateViewofFloat(lyFragmentMap, "translationY", 0f, 0)
+                ivOpenClose.rotation = 180f
+            } else {
+                setHeightLinearLayout(lyMap, 0)
+                animateViewofFloat(lyFragmentMap, "translationY", -300f, 0)
+                ivOpenClose.rotation = 0f
+            }
+
+        } else
+            requestPermissionLocation()
+    }
+
     private fun initPermissionsGPS() {
         if (allPermissionsGrantedGPS())
             fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
@@ -825,6 +965,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 PackageManager.PERMISSION_GRANTED
     }
 
+
     private fun manageLocation() {
         if (checkPermission()) {
 
@@ -850,6 +991,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         } else requestPermissionLocation()
     }
 
+
     @SuppressLint("MissingPermission")
     private fun requestNewLocationData() {
         var mLocationRequest = com.google.android.gms.location.LocationRequest()
@@ -864,6 +1006,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             mLocationCallBack,
             Looper.myLooper()
         )
+
 
     }
 
@@ -890,6 +1033,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }
         latitude = new_latitude
         longitude = new_longitude
+
+        if (mapCentered == true) centerMap(latitude, longitude)
     }
 
     private fun calculateDistance(n_lt: Double, n_lg: Double): Double {
@@ -919,7 +1064,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         avgSpeed = ((distance * 1000) / timeInSeconds) * 3.6
     }
 
-    private fun refreshInterfaceData(){
+    private fun refreshInterfaceData() {
         var tvCurrentDistance = findViewById<TextView>(R.id.tvCurrentDistance)
         var tvCurrentAvgSpeed = findViewById<TextView>(R.id.tvCurrentAvgSpeed)
         var tvCurrentSpeed = findViewById<TextView>(R.id.tvCurrentSpeed)
@@ -934,7 +1079,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         csbCurrentSpeed.progress = speed.toFloat()
 
-        if (speed == maxSpeed){
+        if (speed == maxSpeed) {
             csbCurrentMaxSpeed.max = csbRecordSpeed.max
             csbCurrentMaxSpeed.progress = speed.toFloat()
             csbCurrentSpeed.max = csbRecordSpeed.max
