@@ -55,6 +55,8 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.PolylineOptions
+import com.google.android.gms.maps.model.RoundCap
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.coroutines.Runnable
 import me.tankery.lib.circularseekbar.CircularSeekBar
@@ -146,6 +148,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     private lateinit var map: GoogleMap
     private var mapCentered = true
+    private lateinit var listPoints: Iterable<LatLng>
 
     private val PERMISSION_ID = 42
     private val LOCATION_PERMISSION_REQ_CODE = 1000
@@ -807,6 +810,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun initMap() {
+
+        listPoints = arrayListOf()
+        (listPoints as ArrayList<LatLng>).clear()
+
         createMapFragment()
         var lyOpenerButton = findViewById<LinearLayout>(R.id.lyOpenerButton)
         if (allPermissionsGrantedGPS()) lyOpenerButton.isEnabled = true
@@ -1048,6 +1055,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     updateSpeeds(distanceInterval)
                     refreshInterfaceData()
 
+                    var newPos = LatLng(new_latitude,new_longitude)
+                    (listPoints as ArrayList<LatLng>).add(newPos)
+                    createPolylines(listPoints)
+
                 }
 
             }
@@ -1127,6 +1138,18 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             csbCurrentMaxSpeed.progress = speed.toFloat()
             csbCurrentSpeed.max = csbRecordSpeed.max
         }
+    }
+
+    private fun createPolylines(listPosition: Iterable<LatLng>) {
+         val polylineOptions = PolylineOptions()
+             .width(25f)
+             .color(ContextCompat.getColor(this,R.color.salmon_dark))
+             .addAll(listPoints)
+
+        var polyline = map.addPolyline(polylineOptions)
+        polyline.startCap = RoundCap()
+
+
     }
 
     fun selectBike(v: View) {
@@ -1398,6 +1421,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         maxLatitude = null
         minLongitude = null
         maxLongitude = null
+
+        (listPoints as ArrayList<LatLng>).clear()
 
 
 
