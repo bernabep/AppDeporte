@@ -31,6 +31,9 @@ import androidx.core.view.GravityCompat
 import androidx.core.view.isVisible
 import androidx.drawerlayout.widget.DrawerLayout
 import com.bpandof.appdeporte.Constants.INTERVAL_LOCATION
+import com.bpandof.appdeporte.Constants.LIMIT_DISTANCE_ACCEPTED_BIKE
+import com.bpandof.appdeporte.Constants.LIMIT_DISTANCE_ACCEPTED_ROLLERSKATE
+import com.bpandof.appdeporte.Constants.LIMIT_DISTANCE_ACCEPTED_RUNNING
 import com.bpandof.appdeporte.LoginActivity.Companion.providerSession
 import com.bpandof.appdeporte.LoginActivity.Companion.useremail
 import com.facebook.login.LoginManager
@@ -60,6 +63,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     OnMapReadyCallback, GoogleMap.OnMyLocationButtonClickListener,
     GoogleMap.OnMyLocationClickListener {
     companion object {
+        lateinit var mainContext: Context
         val REQUIRED_PERMISSIONS_GPS =
             arrayOf(
                 Manifest.permission.ACCESS_COARSE_LOCATION,
@@ -135,6 +139,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private var hardTime: Boolean = true
     private var TIME_RUNNING: Int = 0
 
+    private var LIMIT_DISTANCE_ACCEPTED: Double = 0.0
+    private lateinit var sportSelected: String
+
     private lateinit var lyPopupRun: LinearLayout
 
     private lateinit var map: GoogleMap
@@ -156,10 +163,17 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private var avgSpeed: Double = 0.0
     private var speed: Double = 0.0
 
+    private var minAltitude: Double? = null
+    private var maxAltitude: Double? = null
+    private var minLatitude: Double? = null
+    private var maxLatitude: Double? = null
+    private var minLongitude: Double? = null
+    private var maxLongitude: Double? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        mainContext = this
         initObjects()
         initToolBar()
         initNavigationView()
@@ -865,38 +879,40 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
             != PackageManager.PERMISSION_GRANTED &&
-            ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
 
             requestPermissionLocation()
             return
-        }
-            else map.isMyLocationEnabled = true
+        } else map.isMyLocationEnabled = true
 
     }
 
-    private fun centerMap(lt: Double, ln: Double){
+    private fun centerMap(lt: Double, ln: Double) {
         val posMap = LatLng(lt, ln)
         map.animateCamera(CameraUpdateFactory.newLatLngZoom(posMap, 16f), 1000, null)
 
     }
 
-    fun changeTypeMap(v: View){
+    fun changeTypeMap(v: View) {
         var ivTypeMap = findViewById<ImageView>(R.id.ivTypeMap)
-        if (map.mapType == GoogleMap.MAP_TYPE_HYBRID){
+        if (map.mapType == GoogleMap.MAP_TYPE_HYBRID) {
             map.mapType = GoogleMap.MAP_TYPE_NORMAL
             ivTypeMap.setImageResource(R.drawable.map_type_hybrid)
-        }
-        else{
+        } else {
             map.mapType = GoogleMap.MAP_TYPE_HYBRID
             ivTypeMap.setImageResource(R.drawable.map_type_normal)
         }
     }
-    fun callCenterMap(v: View){
+
+    fun callCenterMap(v: View) {
         mapCentered = true
         if (latitude == 0.0) centerMap(init_lt, init_ln)
         else centerMap(latitude, longitude)
     }
-
 
 
     fun callShowHideMap(v: View) {
@@ -1016,6 +1032,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             init_lt = mLastLocation!!.latitude
             init_ln = mLastLocation.longitude
             if (timeInSeconds > 0L) registerNewLocation(mLastLocation)
+
         }
     }
 
@@ -1027,14 +1044,40 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             if (timeInSeconds >= INTERVAL_LOCATION) {
                 var distanceInterval = calculateDistance(new_latitude, new_longitude)
 
-                updateSpeeds(distanceInterval)
-                refreshInterfaceData()
+                if (distanceInterval <= LIMIT_DISTANCE_ACCEPTED) {
+                    updateSpeeds(distanceInterval)
+                    refreshInterfaceData()
+
+                }
+
             }
         }
         latitude = new_latitude
         longitude = new_longitude
 
         if (mapCentered == true) centerMap(latitude, longitude)
+
+        if (minLatitude == null) {
+            minLatitude = latitude
+            maxLatitude = latitude
+            minLongitude = longitude
+            maxLongitude = longitude
+        }
+        if (latitude < minLatitude!!) minLatitude = latitude
+        if (latitude > maxLatitude!!) maxLatitude = latitude
+        if (longitude < minLongitude!!) minLongitude = longitude
+        if (longitude > maxLongitude!!) maxLongitude = longitude
+
+        if (location.hasAltitude()) {
+            if (maxAltitude == null) {
+                maxAltitude = location.altitude
+                minAltitude = location.altitude
+            }
+            if (location.latitude > maxAltitude!!) maxAltitude = location.altitude
+            if (location.latitude < minAltitude!!) minAltitude = location.altitude
+
+        }
+
     }
 
     private fun calculateDistance(n_lt: Double, n_lg: Double): Double {
@@ -1052,7 +1095,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         val va2 = 2 * Math.atan2(Math.sqrt(va1), Math.sqrt(1 - va1))
         var n_distance = radioTierra * va2
 
-        //if (n_distance < LIMIT_DISTANCE_ACCEPTED) distance += n_distance
+        if (n_distance < LIMIT_DISTANCE_ACCEPTED) distance += n_distance
 
         distance += n_distance
         return n_distance
@@ -1083,6 +1126,92 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             csbCurrentMaxSpeed.max = csbRecordSpeed.max
             csbCurrentMaxSpeed.progress = speed.toFloat()
             csbCurrentSpeed.max = csbRecordSpeed.max
+        }
+    }
+
+    fun selectBike(v: View) {
+        if (timeInSeconds.toInt() == 0) selectSport("Bike")
+    }
+
+    fun selectRollerSkate(v: View) {
+        if (timeInSeconds.toInt() == 0) selectSport("RollerSkate")
+    }
+
+    fun selectRunning(v: View) {
+        if (timeInSeconds.toInt() == 0) selectSport("Running")
+    }
+
+    private fun selectSport(sport: String) {
+
+        sportSelected = sport
+
+        var lySportBike = findViewById<LinearLayout>(R.id.lySportBike)
+        var lySportRollerSkate = findViewById<LinearLayout>(R.id.lySportRollerSkate)
+        var lySportRunning = findViewById<LinearLayout>(R.id.lySportRunning)
+
+        when (sportSelected) {
+            "Bike" -> {
+                LIMIT_DISTANCE_ACCEPTED = LIMIT_DISTANCE_ACCEPTED_BIKE
+
+                lySportBike.setBackgroundColor(ContextCompat.getColor(mainContext, R.color.orange))
+                lySportRollerSkate.setBackgroundColor(
+                    ContextCompat.getColor(
+                        mainContext,
+                        R.color.gray_medium
+                    )
+                )
+                lySportRunning.setBackgroundColor(
+                    ContextCompat.getColor(
+                        mainContext,
+                        R.color.gray_medium
+                    )
+                )
+            }
+            "RollerSkate" -> {
+                LIMIT_DISTANCE_ACCEPTED = LIMIT_DISTANCE_ACCEPTED_ROLLERSKATE
+
+                lySportBike.setBackgroundColor(
+                    ContextCompat.getColor(
+                        mainContext,
+                        R.color.gray_medium
+                    )
+                )
+                lySportRollerSkate.setBackgroundColor(
+                    ContextCompat.getColor(
+                        mainContext,
+                        R.color.orange
+                    )
+                )
+                lySportRunning.setBackgroundColor(
+                    ContextCompat.getColor(
+                        mainContext,
+                        R.color.gray_medium
+                    )
+                )
+            }
+            "Running" -> {
+                LIMIT_DISTANCE_ACCEPTED = LIMIT_DISTANCE_ACCEPTED_RUNNING
+
+                lySportBike.setBackgroundColor(
+                    ContextCompat.getColor(
+                        mainContext,
+                        R.color.gray_medium
+                    )
+                )
+                lySportRollerSkate.setBackgroundColor(
+                    ContextCompat.getColor(
+                        mainContext,
+                        R.color.gray_medium
+                    )
+                )
+                lySportRunning.setBackgroundColor(
+                    ContextCompat.getColor(
+                        mainContext,
+                        R.color.orange
+                    )
+                )
+            }
+
         }
     }
 
@@ -1258,6 +1387,19 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private fun resetVariablesRun() {
         timeInSeconds = 0
         rounds = 1
+
+        distance = 0.0
+        maxSpeed = 0.0
+        avgSpeed = 0.0
+
+        minAltitude = null
+        maxAltitude = null
+        minLatitude = null
+        maxLatitude = null
+        minLongitude = null
+        maxLongitude = null
+
+
 
         isRunning = false
         isWalking = false

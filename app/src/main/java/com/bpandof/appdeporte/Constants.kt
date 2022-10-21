@@ -2,4 +2,7 @@ package com.bpandof.appdeporte
 
 object Constants{
     const val INTERVAL_LOCATION = 4
+    const val LIMIT_DISTANCE_ACCEPTED_BIKE = 0.04 * INTERVAL_LOCATION
+    const val LIMIT_DISTANCE_ACCEPTED_ROLLERSKATE = 0.035 * INTERVAL_LOCATION
+    const val LIMIT_DISTANCE_ACCEPTED_RUNNING = 0.012 * INTERVAL_LOCATION
 }
