@@ -99,4 +99,6 @@
     <string name="medalAvgSpeedDescription">Vel. Máx. [Record Personal]</string>
     <string name="medalMaxSpeedDescription">Vel. Prom. [Record Personal]</string>
 
+    <string name="alertClearPreferencesTitle">¿Quieres borrar tus preferencias de carrera?</string>
+    <string name="alertClearPreferencesDescription">Borraremos los ajustes de volumen y carrera (modo y tiempo de intervalos) de tu útlima carrera, vamos que tampoco pasa na</string>
 </resources>
