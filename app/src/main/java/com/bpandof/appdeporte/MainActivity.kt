@@ -16,6 +16,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
@@ -77,6 +78,7 @@ import com.google.android.gms.maps.model.RoundCap
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Runnable
 import me.tankery.lib.circularseekbar.CircularSeekBar
 
@@ -204,6 +206,15 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private var minLongitude: Double? = null
     private var maxLongitude: Double? = null
 
+    private lateinit var levelBike: Level
+    private lateinit var levelRollerSkate: Level
+    private lateinit var levelRunning: Level
+    private lateinit var levelSelectedSport: Level
+
+    private lateinit var levelListBike: ArrayList<Level>
+    private lateinit var levelListRollerSkate: ArrayList<Level>
+    private lateinit var levelListRunning: ArrayList<Level>
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -213,6 +224,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         initNavigationView()
         initPermissionsGPS()
 
+        loadFromDB()
 
     }
 
@@ -622,15 +634,66 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     }
 
-    private fun initTotals(){
-        totalsBike = Totals(0.0,0.0,0.0,0.0,0,0)
-        totalsRollerSkate = Totals(0.0,0.0,0.0,0.0,0,0)
-        totalsRunning = Totals(0.0,0.0,0.0,0.0,0,0)
+    private fun initTotals() {
+        totalsBike = Totals(0.0, 0.0, 0.0, 0.0, 0, 0)
+        totalsRollerSkate = Totals(0.0, 0.0, 0.0, 0.0, 0, 0)
+        totalsRunning = Totals(0.0, 0.0, 0.0, 0.0, 0, 0)
 
     }
 
-    private fun initLevels(){
+    private fun initLevels() {
+        levelSelectedSport = Level()
+        levelBike = Level("turtle", "level_1", 5, 40)
+        levelRollerSkate = Level("turtle", "level_1", 5, 20)
+        levelRunning = Level("turtle", "level_1", 5, 10)
 
+
+        levelListBike = arrayListOf()
+        levelListBike.clear()
+
+        levelListRollerSkate = arrayListOf()
+        levelListRollerSkate.clear()
+
+        levelListRunning = arrayListOf()
+        levelListRunning.clear()
+
+    }
+
+    private fun loadFromDB() {
+        loadTotalsUser()
+    }
+
+    private fun loadTotalsUser() {
+        loadTotalSport("Bike")
+        loadTotalSport("RollerSkate")
+        loadTotalSport("Running")
+    }
+
+    private fun loadTotalSport(sport: String) {
+        var collection = "totals$sport"
+        var dbTotalsUser = FirebaseFirestore.getInstance()
+        dbTotalsUser.collection(collection).document(useremail)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document.data?.size != null) {
+
+                } else {
+                    val dbTotal: FirebaseFirestore = FirebaseFirestore.getInstance()
+                    dbTotal.collection(collection).document(useremail).set(
+                        hashMapOf(
+                            "recordAvgSpeed" to 0.0,
+                            "recordDistance" to 0.0,
+                            "recordSpeed" to 0.0,
+                            "totalDistance" to 0.0,
+                            "totalRuns" to 0,
+                            "totalTimes" to 0,
+                        )
+                    )
+                }
+            }
+            .addOnFailureListener { exception ->
+                Log.e("ERROR loadTotalsUser", "get failed with", exception)
+            }
     }
 
     private fun initPreferences() {
