@@ -1,6 +1,7 @@
 package com.bpandof.appdeporte
 
 import android.Manifest
+import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.content.Context
 
@@ -84,6 +85,13 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     GoogleMap.OnMyLocationClickListener {
     companion object {
         lateinit var mainContext: Context
+
+        lateinit var totalsSelectedSport: Totals
+        lateinit var totalsBike: Totals
+        lateinit var totalsRollerSkate: Totals
+        lateinit var totalsRunning: Totals
+
+
         val REQUIRED_PERMISSIONS_GPS =
             arrayOf(
                 Manifest.permission.ACCESS_COARSE_LOCATION,
@@ -594,13 +602,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         mpNotify?.start()
     }
 
-    private fun hidePopUpRun() {
-        var lyWindow = findViewById<LinearLayout>(R.id.lyWindow)
-        lyWindow.translationX = 400f
-        lyPopupRun = findViewById<LinearLayout>(R.id.lyPopupRun)
-        lyPopupRun.isVisible = false
-
-    }
 
     private fun initObjects() {
         initChrono()
@@ -613,8 +614,22 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         hidePopUpRun()
 
         initMap()
+
+        initTotals()
+        initLevels()
         initPreferences()
         recoveryPreferences()
+
+    }
+
+    private fun initTotals(){
+        totalsBike = Totals(0.0,0.0,0.0,0.0,0,0)
+        totalsRollerSkate = Totals(0.0,0.0,0.0,0.0,0,0)
+        totalsRunning = Totals(0.0,0.0,0.0,0.0,0,0)
+
+    }
+
+    private fun initLevels(){
 
     }
 
@@ -727,16 +742,16 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         startActivity(Intent(this, LoginActivity::class.java))
     }
 
-    private fun alertClearPreferences(){
+    private fun alertClearPreferences() {
         AlertDialog.Builder(this)
             .setTitle(getString(R.string.alertClearPreferencesTitle))
             .setMessage(getString(R.string.alertClearPreferencesDescription))
             .setPositiveButton(android.R.string.ok,
-            DialogInterface.OnClickListener { dialog, which ->
-            callClearPreferences()
-            })
+                DialogInterface.OnClickListener { dialog, which ->
+                    callClearPreferences()
+                })
             .setNegativeButton(getString(android.R.string.cancel),
-                DialogInterface.OnClickListener{dialog, which ->
+                DialogInterface.OnClickListener { dialog, which ->
 
                 })
             .setCancelable(true)
@@ -744,10 +759,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     }
 
-private fun callClearPreferences(){
-    editor.clear()
-    Toast.makeText(this,"Tus ajustes han sido reestablecidos",Toast.LENGTH_SHORT).show()
-}
+    private fun callClearPreferences() {
+        editor.clear()
+        Toast.makeText(this, "Tus ajustes han sido reestablecidos", Toast.LENGTH_SHORT).show()
+    }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
 
@@ -1552,7 +1567,9 @@ private fun callClearPreferences(){
 
         savePreferences()
 
-        resetVariablesRun()
+        showPopUp()
+
+
         resetTimeView()
         resetInterface()
     }
@@ -1730,6 +1747,113 @@ private fun callClearPreferences(){
             mpHard?.start()
         } else
             updateProgressBarRound(Secs)
+
+    }
+
+    private fun showPopUp() {
+        var rlMain = findViewById<RelativeLayout>(R.id.rlMain)
+        rlMain.isEnabled = false
+
+        lyPopupRun.isVisible = true
+
+        var lyWindow = findViewById<LinearLayout>(R.id.lyWindow)
+        ObjectAnimator.ofFloat(lyWindow, "translationX", 0f).apply {
+            duration = 200
+            start()
+        }
+
+        loadDataPopUp()
+    }
+
+    private fun loadDataPopUp() {
+        showHeaderPopUP()
+        showMedals()
+        showDataRun()
+    }
+
+    private fun showHeaderPopUP() {
+
+    }
+
+    private fun showMedals() {
+
+    }
+
+    private fun showDataRun() {
+        var tvDurationRun = findViewById<TextView>(R.id.tvDurationRun)
+        var lyChallengeDurationRun = findViewById<LinearLayout>(R.id.lyChallengeDurationRun)
+        var tvChallengeDurationRun = findViewById<TextView>(R.id.tvChallengeDurationRun)
+        var lyIntervalRun = findViewById<LinearLayout>(R.id.lyIntervalRun)
+        var tvIntervalRun = findViewById<TextView>(R.id.tvIntervalRun)
+        var tvDistanceRun = findViewById<TextView>(R.id.tvDistanceRun)
+        var lyChallengeDistancePopUp = findViewById<LinearLayout>(R.id.lyChallengeDistancePopUp)
+        var tvChallengeDistanceRun = findViewById<TextView>(R.id.tvChallengeDistanceRun)
+        var lyUnevennessRun = findViewById<LinearLayout>(R.id.lyUnevennessRun)
+        var tvMaxUnevennessRun = findViewById<TextView>(R.id.tvMaxUnevennessRun)
+        var tvMinUnevennessRun = findViewById<TextView>(R.id.tvMinUnevennessRun)
+        var tvAvgSpeedRun = findViewById<TextView>(R.id.tvAvgSpeedRun)
+        var tvMaxSpeedRun = findViewById<TextView>(R.id.tvMaxSpeedRun)
+        var lyCurrentDistance = findViewById<LinearLayout>(R.id.lyCurrentDistance)
+        var lyCurrentSpeeds = findViewById<LinearLayout>(R.id.lyCurrentSpeeds)
+        var lyMedalsRun = findViewById<LinearLayout>(R.id.lyMedalsRun)
+        if (!activatedGPS) {
+            setHeightLinearLayout(lyCurrentDistance, 0)
+            setHeightLinearLayout(lyCurrentSpeeds, 0)
+        } else {
+            if (timeInSeconds.toInt() == 0) {
+                setHeightLinearLayout(lyMedalsRun, 0)
+            }
+        }
+
+        tvDurationRun.setText(tvChrono.text)
+        if (challengeDuration > 0) {
+            setHeightLinearLayout(lyChallengeDistancePopUp, 120)
+            tvChallengeDurationRun.setText(getFormattedStopWatch((challengeDuration * 1000).toLong()))
+        } else
+            setHeightLinearLayout(lyChallengeDurationRun, 0)
+
+        if (swIntervalMode.isChecked) {
+            setHeightLinearLayout(lyIntervalRun, 120)
+            var details: String = "${npDurationInterval.value}mins.("
+            details += "${tvRunningTime.text}/${tvWalkingTime.text})"
+
+            tvIntervalRun.setText(details)
+        } else setHeightLinearLayout(lyIntervalRun, 0)
+
+        tvDistanceRun.setText(roundNumber(distance.toString(), 2))
+        if (challengeDistance > 0f) {
+            setHeightLinearLayout(lyChallengeDistancePopUp, 120)
+            tvChallengeDistanceRun.setText(challengeDistance.toString())
+        } else setHeightLinearLayout(lyChallengeDistancePopUp, 0)
+
+        if (maxAltitude == null) setHeightLinearLayout(lyUnevennessRun, 0)
+        else {
+            setHeightLinearLayout(lyUnevennessRun, 120)
+            tvMaxUnevennessRun.setText(maxAltitude!!.toString())
+            tvMinUnevennessRun.setText(minAltitude!!.toString())
+        }
+
+        tvAvgSpeedRun.setText(roundNumber(avgSpeed.toString(), 2))
+        tvMaxSpeedRun.setText(roundNumber(maxSpeed.toString(), 2))
+
+    }
+
+    fun closePopUp(v: View) {
+        closePopUpRun()
+    }
+
+    private fun closePopUpRun() {
+        hidePopUpRun()
+        var rlMain = findViewById<RelativeLayout>(R.id.rlMain)
+        rlMain.isEnabled = true
+        resetVariablesRun()
+    }
+
+    private fun hidePopUpRun() {
+        var lyWindow = findViewById<LinearLayout>(R.id.lyWindow)
+        lyWindow.translationX = 400f
+        lyPopupRun = findViewById<LinearLayout>(R.id.lyPopupRun)
+        lyPopupRun.isVisible = false
 
     }
 

@@ -8,8 +8,18 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
-    <!--tools:openDrawer="start"-->
 
+    <include
+        layout="@layout/app_bar_main"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <com.google.android.material.navigation.NavigationView
+        android:id="@+id/nav_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start"
+        app:menu="@menu/activity_main_drawer" />
 
     <RelativeLayout
         android:id="@+id/rlMain"
@@ -20,7 +30,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@color/transparent">
-
             <!-- Datos actuales de carrera -->
             <LinearLayout
                 android:id="@+id/lyCurrentData"
@@ -362,7 +371,7 @@
                 </RelativeLayout>
             </LinearLayout>
 
-            <!-- Chrono y Rounds con los "progressbar" simulados con linearlayouts -->
+
             <RelativeLayout
                 android:id="@+id/lyChrono"
                 android:layout_width="match_parent"
@@ -455,7 +464,6 @@
                             android:translationY="-300dp"
                             android:gravity="left"
                             android:orientation="vertical">
-
                             <fragment
                                 android:id="@+id/fragmentMap"
                                 android:name="com.google.android.gms.maps.SupportMapFragment"
@@ -469,7 +477,6 @@
                                 map:uiTiltGestures="true"
                                 map:uiZoomControls="true"
                                 map:uiZoomGestures="true"/>
-
                             <TextView
                                 android:id="@+id/tvMapCenter"
                                 android:layout_width="wrap_content"
@@ -499,7 +506,6 @@
                                 android:translationZ="10dp"
                                 android:onClick="changeTypeMap"/>
                         </LinearLayout>
-
                     </LinearLayout>
                     <LinearLayout
                         android:id="@+id/lyOpenerMap"
@@ -595,22 +601,25 @@
                     android:background="@color/gray_dark">
 
                     <!-- Boton de Start y Camara -->
+
+                    <!-- Sports -->
                     <RelativeLayout
                         android:id="@+id/rlStartCamara"
-                        android:layout_gravity="center"
-                        android:gravity="center|center"
                         android:layout_width="match_parent"
                         android:layout_height="150dp"
+                        android:layout_gravity="center"
+                        android:gravity="center|center"
                         android:translationZ="10dp">
+
                         <LinearLayout
                             android:id="@+id/btStart"
-                            android:layout_gravity="center"
-                            android:gravity="center|center"
-                            android:layout_centerInParent="true"
                             android:layout_width="150dp"
                             android:layout_height="150dp"
+                            android:layout_centerInParent="true"
+                            android:layout_gravity="center"
                             android:background="@drawable/circle_background_toplay"
                             android:enabled="false"
+                            android:gravity="center|center"
                             android:onClick="startOrStopButtonClicked"
                             android:textColor="@color/white">
 
@@ -626,6 +635,7 @@
                                 android:textStyle="bold"
                                 android:translationY="-5dp" />
                         </LinearLayout>
+
                         <com.google.android.material.floatingactionbutton.FloatingActionButton
                             android:id="@+id/fbCamera"
                             android:layout_width="wrap_content"
@@ -633,14 +643,13 @@
                             android:layout_alignParentBottom="true"
                             android:layout_centerInParent="true"
                             android:backgroundTint="@color/white"
+                            android:onClick="takePicture"
                             android:src="@android:drawable/ic_menu_camera"
-                            app:maxImageSize="40dp"
-                            android:translationZ="12dp"
                             android:translationX="75dp"
-                            android:onClick="takePicture"/>
+                            android:translationZ="12dp"
+                            app:maxImageSize="40dp" />
                     </RelativeLayout>
 
-                    <!-- Sports -->
                     <LinearLayout
                         android:id="@+id/lySports"
                         android:layout_width="match_parent"
@@ -1355,6 +1364,7 @@
 
     <LinearLayout
         android:id="@+id/lyPopupRun"
+        tools:visibility="visible"
         android:visibility="invisible"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -1362,9 +1372,6 @@
         android:gravity="center|center"
         android:background="@color/gray_light_trans">
 
-        <!--
-    android:translationX="400dp"
-    -->
         <LinearLayout
             android:id="@+id/lyWindow"
             android:layout_width="355dp"
@@ -2136,16 +2143,6 @@
 
 
 
-    <include
-        layout="@layout/app_bar_main"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
 
-    <com.google.android.material.navigation.NavigationView
-        android:id="@+id/nav_view"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="start"
-        app:menu="@menu/activity_main_drawer" />
 
 </androidx.drawerlayout.widget.DrawerLayout>
