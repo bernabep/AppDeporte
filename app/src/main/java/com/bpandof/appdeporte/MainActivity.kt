@@ -4,7 +4,6 @@ import android.Manifest
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.content.Context
-
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.SharedPreferences
@@ -16,6 +15,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
@@ -77,6 +77,9 @@ import com.google.android.gms.maps.model.RoundCap
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.toObject
 import kotlinx.coroutines.Runnable
 import me.tankery.lib.circularseekbar.CircularSeekBar
 
@@ -204,6 +207,16 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private var minLongitude: Double? = null
     private var maxLongitude: Double? = null
 
+    private lateinit var levelBike: Level
+    private lateinit var levelRollerSkate: Level
+    private lateinit var levelRunning: Level
+    private lateinit var levelSelectedSport: Level
+
+    private lateinit var levelsListBike: ArrayList<Level>
+    private lateinit var levelsListRollerSkate: ArrayList<Level>
+    private lateinit var levelsListRunning: ArrayList<Level>
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -212,6 +225,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         initToolBar()
         initNavigationView()
         initPermissionsGPS()
+
+        loadFromDB()
 
 
     }
@@ -602,7 +617,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         mpNotify?.start()
     }
 
-
     private fun initObjects() {
         initChrono()
         hideLayouts()
@@ -622,15 +636,78 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     }
 
-    private fun initTotals(){
-        totalsBike = Totals(0.0,0.0,0.0,0.0,0,0)
-        totalsRollerSkate = Totals(0.0,0.0,0.0,0.0,0,0)
-        totalsRunning = Totals(0.0,0.0,0.0,0.0,0,0)
+    private fun initTotals() {
+        totalsBike = Totals(0.0, 0.0, 0.0, 0.0, 0, 0)
+        totalsRollerSkate = Totals(0.0, 0.0, 0.0, 0.0, 0, 0)
+        totalsRunning = Totals(0.0, 0.0, 0.0, 0.0, 0, 0)
 
     }
 
-    private fun initLevels(){
+    private fun initLevels() {
 
+    }
+
+    private fun loadFromDB() {
+        loadTotalUser()
+    }
+
+    private fun loadTotalUser() {
+        loadTotalSport("Bike")
+        loadTotalSport("RollerSkate")
+        loadTotalSport("Running")
+    }
+
+    private fun loadTotalSport(sport: String) {
+        var collection = "totals$sport"
+        var dbTotalsUser = FirebaseFirestore.getInstance()
+        dbTotalsUser.collection(collection).document(useremail)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document.data?.size != null) {
+                    var total = document.toObject(Totals::class.java)
+                    when (sport) {
+                        "Bike" -> totalsBike = total!!
+                        "RollerSkate" -> totalsRollerSkate = total!!
+                        "Running" -> totalsRunning = total!!
+                    }
+                } else {
+                    val dbTotal: FirebaseFirestore = FirebaseFirestore.getInstance()
+                    dbTotal.collection(collection).document(useremail)
+                        .set(Totals(0.0, 0.0, 0.0, 0.0, 0, 0))
+                }
+
+                setLevelSport(sport)
+            }
+
+
+            .addOnFailureListener { exception ->
+                Log.e("ERROR loadTotalUser", "get failed with ", exception)
+            }
+    }
+
+    private fun setLevelSport(sport: String) {
+        val dbLevels = FirebaseFirestore.getInstance()
+        dbLevels.collection("levels$sport")
+            .get()
+            .addOnSuccessListener { documents ->
+                for (document in documents) {
+                    when (sport) {
+                        "Bike" -> levelsListBike.add(document.toObject(Level::class.java))
+                        "RollerSkate" -> levelRollerSkate.add(document.toObject(Level::class.java))
+                        "Running" -> levelsListRunning.add(document.toObject(Level::class.java))
+                    }
+                }
+                when (sport) {
+                    "Bike" -> setLevelBike()
+                    "RollerSkate"-> setLevelRollerSkate()
+                    "Running" -> setLevelRunning()
+
+                }
+            }
+
+            .addOnFailureListener { exception ->
+                Log.e("ERROR loadLevels", "get failed with ", exception)
+            }
     }
 
     private fun initPreferences() {
@@ -1763,6 +1840,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }
 
         loadDataPopUp()
+
     }
 
     private fun loadDataPopUp() {
@@ -1833,8 +1911,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             tvMinUnevennessRun.setText(minAltitude!!.toString())
         }
 
-        tvAvgSpeedRun.setText(roundNumber(avgSpeed.toString(), 2))
-        tvMaxSpeedRun.setText(roundNumber(maxSpeed.toString(), 2))
+        tvAvgSpeedRun.setText(roundNumber(avgSpeed.toString(), 1))
+        tvMaxSpeedRun.setText(roundNumber(maxSpeed.toString(), 1))
 
     }
 

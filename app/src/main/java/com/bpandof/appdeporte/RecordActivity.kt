@@ -14,7 +14,6 @@ class RecordActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_record)
 
-
         val toolbar: androidx.appcompat.widget.Toolbar = findViewById(R.id.toolbar_record)
         setSupportActionBar(toolbar)
 
@@ -33,60 +32,71 @@ class RecordActivity : AppCompatActivity() {
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-
         menuInflater.inflate(R.menu.order_records_by, menu)
         return true //super.onCreateOptionsMenu(menu)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
+
+        when (item.itemId){
             R.id.orderby_date -> {
-                if (item.title == getString(R.string.orderby_dateZA)) {
+                if (item.title == getString(R.string.orderby_dateZA)){
                     item.title = getString(R.string.orderby_dateAZ)
-                } else {
+                }
+                else{
                     item.title = getString(R.string.orderby_dateZA)
                 }
                 return true
             }
-            R.id.orderby_duration -> {
-                if (item.title == getString(R.string.orderby_durationZA)) {
+            R.id.orderby_duration ->{
+                var option = getString(R.string.orderby_durationZA)
+                if (item.title == getString(R.string.orderby_durationZA)){
                     item.title = getString(R.string.orderby_durationAZ)
-                } else {
+                }
+                else{
                     item.title = getString(R.string.orderby_durationZA)
                 }
                 return true
             }
-            R.id.orderby_distance -> {
-                if (item.title == getString(R.string.orderby_distanceZA)) {
+
+            R.id.orderby_distance ->{
+                var option = getString(R.string.orderby_distanceZA)
+                if (item.title == option){
                     item.title = getString(R.string.orderby_distanceAZ)
-                } else {
+                }
+                else{
                     item.title = getString(R.string.orderby_distanceZA)
                 }
                 return true
             }
-            R.id.orderby_avgspeed -> {
-                if (item.title == getString(R.string.orderby_avgspeedZA)) {
+
+            R.id.orderby_avgspeed ->{
+                var option = getString(R.string.orderby_avgspeedZA)
+                if (item.title == getString(R.string.orderby_avgspeedZA)){
                     item.title = getString(R.string.orderby_avgspeedAZ)
-                } else {
+                }
+                else{
                     item.title = getString(R.string.orderby_avgspeedZA)
                 }
                 return true
             }
-            R.id.orderby_maxspeed -> {
-                if (item.title == getString(R.string.orderby_maxspeedZA)) {
+
+            R.id.orderby_maxspeed ->{
+                var option = getString(R.string.orderby_maxspeedZA)
+                if (item.title == getString(R.string.orderby_maxspeedZA)){
                     item.title = getString(R.string.orderby_maxspeedAZ)
-                } else {
+                }
+                else{
                     item.title = getString(R.string.orderby_maxspeedZA)
                 }
                 return true
             }
-        }
 
+        }
         return super.onOptionsItemSelected(item)
     }
-
-    private fun callHome(v: View){
-        val intent = Intent(this,MainActivity::class.java)
+    fun callHome(v: View){
+        val intent = Intent(this, MainActivity::class.java)
         startActivity(intent)
     }
 
