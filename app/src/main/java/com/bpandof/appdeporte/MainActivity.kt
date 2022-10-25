@@ -217,6 +217,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private lateinit var levelsListRollerSkate: ArrayList<Level>
     private lateinit var levelsListRunning: ArrayList<Level>
 
+    private var sportsLoaded: Int = 0
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -703,8 +705,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     dbTotal.collection(collection).document(useremail)
                         .set(Totals(0.0, 0.0, 0.0, 0.0, 0, 0))
                 }
-
+                sportsLoaded++
                 setLevelSport(sport)
+                if (sportsLoaded == 3) selectSport(sportSelected)
 
 
             }
@@ -985,6 +988,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             sbNotifyVolume.progress = sharedPreferences.getInt(key_notifyVol, 100)
 
         }
+        else sportSelected = "Running"
 
     }
 
@@ -1622,7 +1626,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         if (timeInSeconds.toInt() == 0) selectSport("Running")
     }
 
-    private fun selectSport(sport: String){
+    private fun selectSport(sport: String) {
 
         sportSelected = sport
 
@@ -1630,33 +1634,73 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         var lySportRollerSkate = findViewById<LinearLayout>(R.id.lySportRollerSkate)
         var lySportRunning = findViewById<LinearLayout>(R.id.lySportRunning)
 
-        when (sport){
-            "Bike"->{
+        when (sport) {
+            "Bike" -> {
                 LIMIT_DISTANCE_ACCEPTED = LIMIT_DISTANCE_ACCEPTED_BIKE
 
                 lySportBike.setBackgroundColor(ContextCompat.getColor(mainContext, R.color.orange))
-                lySportRollerSkate.setBackgroundColor(ContextCompat.getColor(mainContext, R.color.gray_medium))
-                lySportRunning.setBackgroundColor(ContextCompat.getColor(mainContext, R.color.gray_medium))
+                lySportRollerSkate.setBackgroundColor(
+                    ContextCompat.getColor(
+                        mainContext,
+                        R.color.gray_medium
+                    )
+                )
+                lySportRunning.setBackgroundColor(
+                    ContextCompat.getColor(
+                        mainContext,
+                        R.color.gray_medium
+                    )
+                )
 
                 levelSelectedSport = levelBike
                 totalsSelectedSport = totalsBike
             }
-            "RollerSkate"->{
+            "RollerSkate" -> {
                 LIMIT_DISTANCE_ACCEPTED = LIMIT_DISTANCE_ACCEPTED_ROLLERSKATE
 
-                lySportBike.setBackgroundColor(ContextCompat.getColor(mainContext, R.color.gray_medium))
-                lySportRollerSkate.setBackgroundColor(ContextCompat.getColor(mainContext, R.color.orange))
-                lySportRunning.setBackgroundColor(ContextCompat.getColor(mainContext, R.color.gray_medium))
+                lySportBike.setBackgroundColor(
+                    ContextCompat.getColor(
+                        mainContext,
+                        R.color.gray_medium
+                    )
+                )
+                lySportRollerSkate.setBackgroundColor(
+                    ContextCompat.getColor(
+                        mainContext,
+                        R.color.orange
+                    )
+                )
+                lySportRunning.setBackgroundColor(
+                    ContextCompat.getColor(
+                        mainContext,
+                        R.color.gray_medium
+                    )
+                )
 
                 levelSelectedSport = levelRollerSkate
                 totalsSelectedSport = totalsRollerSkate
             }
-            "Running"->{
+            "Running" -> {
                 LIMIT_DISTANCE_ACCEPTED = LIMIT_DISTANCE_ACCEPTED_RUNNING
 
-                lySportBike.setBackgroundColor(ContextCompat.getColor(mainContext, R.color.gray_medium))
-                lySportRollerSkate.setBackgroundColor(ContextCompat.getColor(mainContext, R.color.gray_medium))
-                lySportRunning.setBackgroundColor(ContextCompat.getColor(mainContext, R.color.orange))
+                lySportBike.setBackgroundColor(
+                    ContextCompat.getColor(
+                        mainContext,
+                        R.color.gray_medium
+                    )
+                )
+                lySportRollerSkate.setBackgroundColor(
+                    ContextCompat.getColor(
+                        mainContext,
+                        R.color.gray_medium
+                    )
+                )
+                lySportRunning.setBackgroundColor(
+                    ContextCompat.getColor(
+                        mainContext,
+                        R.color.orange
+                    )
+                )
 
                 levelSelectedSport = levelRunning
                 totalsSelectedSport = totalsRunning
@@ -1690,10 +1734,16 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private fun refreshRecords() {
         if (totalsSelectedSport.recordDistance!! > 0)
             tvDistanceRecord.text = totalsSelectedSport.recordDistance.toString()
+        else
+            tvDistanceRecord.text = ""
         if (totalsSelectedSport.recordAvgSpeed!! > 0)
             tvAvgSpeedRecord.text = totalsSelectedSport.recordAvgSpeed.toString()
+        else
+            tvAvgSpeedRecord.text = ""
         if (totalsSelectedSport.recordSpeed!! > 0)
             tvMaxSpeedRecord.text = totalsSelectedSport.recordSpeed.toString()
+        else
+            tvMaxSpeedRecord.text = ""
     }
 
     fun startOrStopButtonClicked(v: View) {
