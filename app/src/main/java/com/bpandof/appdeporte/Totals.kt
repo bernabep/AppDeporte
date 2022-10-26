@@ -6,5 +6,5 @@ data class Totals(
     var recordSpeed:Double? = null,
     var totalDistance:Double? = null,
     var totalRuns:Int? = null,
-    var totalTimes:Int? = null,
+    var totalTime:Int? = null,
 )
