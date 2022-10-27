@@ -1,8 +1,11 @@
 package com.bpandof.appdeporte
 
 import android.animation.ObjectAnimator
+import android.graphics.Color
 import android.view.View
 import android.widget.LinearLayout
+import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.firestore.FirebaseFirestore
 import io.grpc.ClientStreamTracer.StreamInfo
 import java.util.concurrent.TimeUnit
 
@@ -99,4 +102,35 @@ object Utility {
         return d
     }
 
+    /*FUNCIONES DE BORRADO DE CARRERA */
+
+    fun deleteRunAndLinkedData(idRun:String,sport:String,ly:LinearLayout){
+
+        //si teniamos el GPS, borramos las ubicaciones
+
+        // si habia todos, borramos todas las fotos
+
+        //revisamos los totales y los records
+
+        //borramos la carrera
+
+        deleteRun(idRun,sport,ly)
+    }
+    private fun deleteRun(idRun: String,sport: String,ly: LinearLayout){
+        var dbRun = FirebaseFirestore.getInstance()
+        dbRun.collection("runs$sport").document(idRun)
+            .delete()
+            .addOnSuccessListener {
+                Snackbar.make(ly,"Registro Borrado",Snackbar.LENGTH_LONG).setAction("OK"){
+                    ly.setBackgroundColor(Color.CYAN)
+                }.show()
+            }
+            .addOnFailureListener{
+                Snackbar.make(ly,"Error al borrar el registro",Snackbar.LENGTH_LONG).setAction("OK"){
+                    ly.setBackgroundColor(Color.CYAN)
+                }.show()
+            }
+
+
+    }
 }

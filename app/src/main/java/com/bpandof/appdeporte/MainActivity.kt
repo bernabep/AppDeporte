@@ -3,6 +3,7 @@ package com.bpandof.appdeporte
 import android.Manifest
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
+import android.content.ContentValues
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
@@ -57,6 +58,7 @@ import com.bpandof.appdeporte.LoginActivity.Companion.providerSession
 import com.bpandof.appdeporte.LoginActivity.Companion.useremail
 import com.bpandof.appdeporte.Utility.animateViewofFloat
 import com.bpandof.appdeporte.Utility.animateViewofInt
+import com.bpandof.appdeporte.Utility.deleteRunAndLinkedData
 import com.bpandof.appdeporte.Utility.getFormattedStopWatch
 import com.bpandof.appdeporte.Utility.getFormattedTotalTime
 import com.bpandof.appdeporte.Utility.getSecFromWatch
@@ -80,9 +82,13 @@ import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.ktx.toObject
 import kotlinx.coroutines.Runnable
 import me.tankery.lib.circularseekbar.CircularSeekBar
+import java.text.SimpleDateFormat
+import java.util.*
+import kotlin.collections.ArrayList
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener,
     OnMapReadyCallback, GoogleMap.OnMyLocationButtonClickListener,
@@ -218,6 +224,25 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private lateinit var levelsListRunning: ArrayList<Level>
 
     private var sportsLoaded: Int = 0
+
+    private lateinit var dateRun: String
+    private lateinit var startTimeRun: String
+
+    private lateinit var medalsListBikeDistance: ArrayList<Double>
+    private lateinit var medalsListBikeAvgSpeed: ArrayList<Double>
+    private lateinit var medalsListBikeMaxSpeed: ArrayList<Double>
+
+    private lateinit var medalsListRollerSkateDistance: ArrayList<Double>
+    private lateinit var medalsListRollerSkateAvgSpeed: ArrayList<Double>
+    private lateinit var medalsListRollerSkateMaxSpeed: ArrayList<Double>
+
+    private lateinit var medalsListRunningDistance: ArrayList<Double>
+    private lateinit var medalsListRunningAvgSpeed: ArrayList<Double>
+    private lateinit var medalsListRunningMaxSpeed: ArrayList<Double>
+
+    private lateinit var medalsListSportSelectedDistance: ArrayList<Double>
+    private lateinit var medalsListSportSelectedAvgSpeed: ArrayList<Double>
+    private lateinit var medalsListSportSelectedMaxSpeed: ArrayList<Double>
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -634,6 +659,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         initTotals()
         initLevels()
+        initMedals()
         initPreferences()
         recoveryPreferences()
 
@@ -677,8 +703,40 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         levelRunning.DistanceTarget = 10
     }
 
+    private fun initMedals() {
+        medalsListSportSelectedDistance = arrayListOf()
+        medalsListSportSelectedAvgSpeed = arrayListOf()
+        medalsListSportSelectedMaxSpeed = arrayListOf()
+        medalsListSportSelectedDistance.clear()
+        medalsListSportSelectedAvgSpeed.clear()
+        medalsListSportSelectedMaxSpeed.clear()
+
+        medalsListBikeDistance = arrayListOf()
+        medalsListBikeAvgSpeed = arrayListOf()
+        medalsListBikeMaxSpeed = arrayListOf()
+        medalsListBikeDistance.clear()
+        medalsListBikeAvgSpeed.clear()
+        medalsListBikeMaxSpeed.clear()
+
+        medalsListRollerSkateDistance = arrayListOf()
+        medalsListRollerSkateAvgSpeed = arrayListOf()
+        medalsListRollerSkateMaxSpeed = arrayListOf()
+        medalsListRollerSkateDistance.clear()
+        medalsListRollerSkateAvgSpeed.clear()
+        medalsListRollerSkateMaxSpeed.clear()
+
+        medalsListRunningDistance = arrayListOf()
+        medalsListRunningAvgSpeed = arrayListOf()
+        medalsListRunningMaxSpeed = arrayListOf()
+        medalsListRunningDistance.clear()
+        medalsListRunningAvgSpeed.clear()
+        medalsListRunningMaxSpeed.clear()
+
+    }
+
     private fun loadFromDB() {
         loadTotalUser()
+        loadMedalsUser()
     }
 
     private fun loadTotalUser() {
@@ -744,14 +802,15 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             }
     }
 
-    private fun setLevelBike(){
+    private fun setLevelBike() {
         var lyNavLevelBike = findViewById<LinearLayout>(R.id.lyNav_LevelBike)
         if (totalsBike.totalTime!! == 0) setHeightLinearLayout(lyNavLevelBike, 0)
-        else{
+        else {
             setHeightLinearLayout(lyNavLevelBike, 300)
-            for (level in levelsListBike){
+            for (level in levelsListBike) {
                 if (totalsBike.totalRuns!! < level.RunsTarget!!
-                    || totalsBike.totalDistance!! < level.DistanceTarget!!){
+                    || totalsBike.totalDistance!! < level.DistanceTarget!!
+                ) {
 
                     levelBike.name = level.name!!
                     levelBike.image = level.image!!
@@ -768,14 +827,15 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             var tvTotalDistanceBike = findViewById<TextView>(R.id.tvTotalDistanceBike)
             var tvNumberLevelBike = findViewById<TextView>(R.id.tvNumberLevelBike)
 
-            var levelText = "${getString(R.string.level)} ${levelBike.image!!.subSequence(6,7).toString()}"
+            var levelText =
+                "${getString(R.string.level)} ${levelBike.image!!.subSequence(6, 7).toString()}"
 
             tvNumberLevelBike.text = levelText
 
             var tt = getFormattedTotalTime(totalsBike.totalTime!!.toLong())
             tvTotalTimeBike.text = tt
 
-            when (levelBike.image){
+            when (levelBike.image) {
                 "level_1" -> ivLevelBike.setImageResource(R.drawable.level_1)
                 "level_2" -> ivLevelBike.setImageResource(R.drawable.level_2)
                 "level_3" -> ivLevelBike.setImageResource(R.drawable.level_3)
@@ -785,7 +845,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 "level_7" -> ivLevelBike.setImageResource(R.drawable.level_7)
             }
             tvTotalRunsBike.text = "${totalsBike.totalRuns}/${levelBike.RunsTarget}"
-            var porcent = totalsBike.totalDistance!!.toInt() * 100 / levelBike.DistanceTarget!!.toInt()
+            var porcent =
+                totalsBike.totalDistance!!.toInt() * 100 / levelBike.DistanceTarget!!.toInt()
             tvTotalDistanceBike.text = "${porcent.toInt()}%"
 
             var csbDistanceBike = findViewById<CircularSeekBar>(R.id.csbDistanceBike)
@@ -804,16 +865,18 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         }
     }
-    private fun setLevelRollerSkate(){
+
+    private fun setLevelRollerSkate() {
 
         var lyNavLevelRollerSkate = findViewById<LinearLayout>(R.id.lyNav_LevelRollerSkate)
         if (totalsRollerSkate.totalTime!! == 0) setHeightLinearLayout(lyNavLevelRollerSkate, 0)
-        else{
+        else {
 
             setHeightLinearLayout(lyNavLevelRollerSkate, 300)
-            for (level in levelsListRollerSkate){
+            for (level in levelsListRollerSkate) {
                 if (totalsRollerSkate.totalRuns!! < level.RunsTarget!!.toInt()
-                    || totalsRollerSkate.totalDistance!! < level.DistanceTarget!!.toDouble()){
+                    || totalsRollerSkate.totalDistance!! < level.DistanceTarget!!.toDouble()
+                ) {
 
                     levelRollerSkate.name = level.name!!
                     levelRollerSkate.image = level.image!!
@@ -830,13 +893,15 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             var tvTotalDistanceRollerSkate = findViewById<TextView>(R.id.tvTotalDistanceRollerSkate)
 
             var tvNumberLevelRollerSkate = findViewById<TextView>(R.id.tvNumberLevelRollerSkate)
-            var levelText = "${getString(R.string.level)} ${levelRollerSkate.image!!.subSequence(6,7).toString()}"
+            var levelText = "${getString(R.string.level)} ${
+                levelRollerSkate.image!!.subSequence(6, 7).toString()
+            }"
             tvNumberLevelRollerSkate.text = levelText
 
             var tt = getFormattedTotalTime(totalsRollerSkate.totalTime!!.toLong())
             tvTotalTimeRollerSkate.text = tt
 
-            when (levelRollerSkate.image){
+            when (levelRollerSkate.image) {
                 "level_1" -> ivLevelRollerSkate.setImageResource(R.drawable.level_1)
                 "level_2" -> ivLevelRollerSkate.setImageResource(R.drawable.level_2)
                 "level_3" -> ivLevelRollerSkate.setImageResource(R.drawable.level_3)
@@ -847,9 +912,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             }
 
 
-            tvTotalRunsRollerSkate.text = "${totalsRollerSkate.totalRuns}/${levelRollerSkate.RunsTarget}"
+            tvTotalRunsRollerSkate.text =
+                "${totalsRollerSkate.totalRuns}/${levelRollerSkate.RunsTarget}"
 
-            var porcent = totalsRollerSkate.totalDistance!!.toInt() * 100 / levelRollerSkate.DistanceTarget!!.toInt()
+            var porcent =
+                totalsRollerSkate.totalDistance!!.toInt() * 100 / levelRollerSkate.DistanceTarget!!.toInt()
             tvTotalDistanceRollerSkate.text = "${porcent.toInt()}%"
 
             var csbDistanceRollerSkate = findViewById<CircularSeekBar>(R.id.csbDistanceRollerSkate)
@@ -867,15 +934,17 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 csbRunsRollerSkate.progress = totalsRollerSkate.totalRuns!!.toFloat()
         }
     }
-    private fun setLevelRunning(){
+
+    private fun setLevelRunning() {
         var lyNavLevelRunning = findViewById<LinearLayout>(R.id.lyNav_LevelRunning)
         if (totalsRunning.totalTime!! == 0) setHeightLinearLayout(lyNavLevelRunning, 0)
-        else{
+        else {
 
             setHeightLinearLayout(lyNavLevelRunning, 300)
-            for (level in levelsListRunning){
+            for (level in levelsListRunning) {
                 if (totalsRunning.totalRuns!! < level.RunsTarget!!.toInt()
-                    || totalsRunning.totalDistance!! < level.DistanceTarget!!.toDouble()){
+                    || totalsRunning.totalDistance!! < level.DistanceTarget!!.toDouble()
+                ) {
 
                     levelRunning.name = level.name!!
                     levelRunning.image = level.image!!
@@ -893,13 +962,14 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
 
             var tvNumberLevelRunning = findViewById<TextView>(R.id.tvNumberLevelRunning)
-            var levelText = "${getString(R.string.level)} ${levelRunning.image!!.subSequence(6,7).toString()}"
+            var levelText =
+                "${getString(R.string.level)} ${levelRunning.image!!.subSequence(6, 7).toString()}"
             tvNumberLevelRunning.text = levelText
 
             var tt = getFormattedTotalTime(totalsRunning.totalTime!!.toLong())
             tvTotalTimeRunning.text = tt.toString()
 
-            when (levelRunning.image){
+            when (levelRunning.image) {
                 "level_1" -> ivLevelRunning.setImageResource(R.drawable.level_1)
                 "level_2" -> ivLevelRunning.setImageResource(R.drawable.level_2)
                 "level_3" -> ivLevelRunning.setImageResource(R.drawable.level_3)
@@ -910,7 +980,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             }
 
             tvTotalRunsRunning.text = "${totalsRunning.totalRuns}/${levelRunning.RunsTarget}"
-            var porcent = totalsRunning.totalDistance!!.toInt() * 100 / levelRunning.DistanceTarget!!.toInt()
+            var porcent =
+                totalsRunning.totalDistance!!.toInt() * 100 / levelRunning.DistanceTarget!!.toInt()
             tvTotalDistanceRunning.text = "${porcent.toInt()}%"
 
             var csbDistanceRunning = findViewById<CircularSeekBar>(R.id.csbDistanceRunning)
@@ -929,6 +1000,173 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         }
     }
+
+    private fun loadMedalsUser() {
+        loadMedalsBike()
+        loadMedalsRollerSkate()
+        loadMedalsRunning()
+    }
+
+    private fun loadMedalsBike() {
+        var dbRecords = FirebaseFirestore.getInstance()
+        dbRecords.collection("runsBike")
+            .orderBy("distance", Query.Direction.DESCENDING)
+            .whereEqualTo("user", useremail)
+            .get()
+            .addOnSuccessListener { documents ->
+                for (document in documents) {
+                    if (document["user"] == useremail)
+                        medalsListBikeDistance.add(document["distance"].toString().toDouble())
+                    if (medalsListBikeDistance.size == 3) break
+                }
+                while (medalsListBikeDistance.size < 3) medalsListBikeDistance.add(0.0)
+            }
+            .addOnFailureListener { exception ->
+                Log.w(ContentValues.TAG, "Error getting documents: ", exception)
+            }
+
+        dbRecords = FirebaseFirestore.getInstance()
+        dbRecords.collection("runsBike")
+            .orderBy("avgSpeed", Query.Direction.DESCENDING)
+            .whereEqualTo("user", useremail)
+            .get()
+            .addOnSuccessListener { documents ->
+                for (document in documents) {
+                    if (document["user"] == useremail)
+                        medalsListBikeAvgSpeed.add(document["distance"].toString().toDouble())
+                    if (medalsListBikeAvgSpeed.size == 3) break
+                }
+                while (medalsListBikeAvgSpeed.size < 3) medalsListBikeAvgSpeed.add(0.0)
+            }
+            .addOnFailureListener { exception ->
+                Log.w(ContentValues.TAG, "Error getting documents: ", exception)
+            }
+
+        dbRecords = FirebaseFirestore.getInstance()
+        dbRecords.collection("runsBike")
+            .orderBy("maxSpeed", Query.Direction.DESCENDING)
+            .whereEqualTo("user", useremail)
+            .get()
+            .addOnSuccessListener { documents ->
+                for (document in documents) {
+                    medalsListBikeMaxSpeed.add(document["distance"].toString().toDouble())
+                    if (medalsListBikeMaxSpeed.size == 3) break
+                }
+                while (medalsListBikeMaxSpeed.size < 3) medalsListBikeMaxSpeed.add(0.0)
+            }
+            .addOnFailureListener { exception ->
+                Log.w(ContentValues.TAG, "Error getting documents: ", exception)
+            }
+    }
+
+    private fun loadMedalsRollerSkate() {
+        var dbRecords = FirebaseFirestore.getInstance()
+        dbRecords.collection("runsRollerSkate")
+            .orderBy("distance", Query.Direction.DESCENDING)
+            .whereEqualTo("user", useremail)
+            .get()
+            .addOnSuccessListener { documents ->
+                for (document in documents) {
+                    if (document["user"] == useremail)
+                        medalsListRollerSkateDistance.add(
+                            document["distance"].toString().toDouble()
+                        )
+                    if (medalsListRollerSkateDistance.size == 3) break
+                }
+                while (medalsListRollerSkateDistance.size < 3) medalsListRollerSkateDistance.add(0.0)
+            }
+            .addOnFailureListener { exception ->
+                Log.w(ContentValues.TAG, "Error getting documents: ", exception)
+            }
+
+        dbRecords = FirebaseFirestore.getInstance()
+        dbRecords.collection("runsRollerSkate")
+            .orderBy("avgSpeed", Query.Direction.DESCENDING)
+            .whereEqualTo("user", useremail)
+            .get()
+            .addOnSuccessListener { documents ->
+                for (document in documents) {
+                    if (document["user"] == useremail)
+                        medalsListRollerSkateAvgSpeed.add(
+                            document["distance"].toString().toDouble()
+                        )
+                    if (medalsListRollerSkateAvgSpeed.size == 3) break
+                }
+                while (medalsListRollerSkateAvgSpeed.size < 3) medalsListRollerSkateAvgSpeed.add(0.0)
+            }
+            .addOnFailureListener { exception ->
+                Log.w(ContentValues.TAG, "Error getting documents: ", exception)
+            }
+
+        dbRecords = FirebaseFirestore.getInstance()
+        dbRecords.collection("runsRollerSkate")
+            .orderBy("maxSpeed", Query.Direction.DESCENDING)
+            .whereEqualTo("user", useremail)
+            .get()
+            .addOnSuccessListener { documents ->
+                for (document in documents) {
+                    medalsListRollerSkateMaxSpeed.add(document["distance"].toString().toDouble())
+                    if (medalsListRollerSkateMaxSpeed.size == 3) break
+                }
+                while (medalsListRollerSkateMaxSpeed.size < 3) medalsListRollerSkateMaxSpeed.add(0.0)
+            }
+            .addOnFailureListener { exception ->
+                Log.w(ContentValues.TAG, "Error getting documents: ", exception)
+            }
+    }
+
+    private fun loadMedalsRunning() {
+        var dbRecords = FirebaseFirestore.getInstance()
+        dbRecords.collection("runsRunning")
+            .orderBy("distance", Query.Direction.DESCENDING)
+            .whereEqualTo("user", useremail)
+            .get()
+            .addOnSuccessListener { documents ->
+                for (document in documents) {
+                    if (document["user"] == useremail)
+                        medalsListRunningDistance.add(document["distance"].toString().toDouble())
+                    if (medalsListRunningDistance.size == 3) break
+                }
+                while (medalsListRunningDistance.size < 3) medalsListRunningDistance.add(0.0)
+            }
+            .addOnFailureListener { exception ->
+                Log.w(ContentValues.TAG, "Error getting documents: ", exception)
+            }
+
+        dbRecords = FirebaseFirestore.getInstance()
+        dbRecords.collection("runsRunning")
+            .orderBy("avgSpeed", Query.Direction.DESCENDING)
+            .whereEqualTo("user", useremail)
+            .get()
+            .addOnSuccessListener { documents ->
+                for (document in documents) {
+                    if (document["user"] == useremail)
+                        medalsListRunningAvgSpeed.add(document["distance"].toString().toDouble())
+                    if (medalsListRunningAvgSpeed.size == 3) break
+                }
+                while (medalsListRunningAvgSpeed.size < 3) medalsListRunningAvgSpeed.add(0.0)
+            }
+            .addOnFailureListener { exception ->
+                Log.w(ContentValues.TAG, "Error getting documents: ", exception)
+            }
+
+        dbRecords = FirebaseFirestore.getInstance()
+        dbRecords.collection("runsRunning")
+            .orderBy("maxSpeed", Query.Direction.DESCENDING)
+            .whereEqualTo("user", useremail)
+            .get()
+            .addOnSuccessListener { documents ->
+                for (document in documents) {
+                    medalsListRunningMaxSpeed.add(document["distance"].toString().toDouble())
+                    if (medalsListRunningMaxSpeed.size == 3) break
+                }
+                while (medalsListRunningMaxSpeed.size < 3) medalsListRunningMaxSpeed.add(0.0)
+            }
+            .addOnFailureListener { exception ->
+                Log.w(ContentValues.TAG, "Error getting documents: ", exception)
+            }
+    }
+
 
     private fun initPreferences() {
         sharedPreferences = getSharedPreferences("sharedPrefs_$useremail", MODE_PRIVATE)
@@ -986,8 +1224,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             sbSoftVolume.progress = sharedPreferences.getInt(key_softVol, 100)
             sbNotifyVolume.progress = sharedPreferences.getInt(key_notifyVol, 100)
 
-        }
-        else sportSelected = "Running"
+        } else sportSelected = "Running"
 
     }
 
@@ -1515,6 +1752,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 if (distanceInterval <= LIMIT_DISTANCE_ACCEPTED) {
                     updateSpeeds(distanceInterval)
                     refreshInterfaceData()
+                    saveLocation(location)
 
                     var newPos = LatLng(new_latitude, new_longitude)
                     (listPoints as ArrayList<LatLng>).add(newPos)
@@ -1611,6 +1849,35 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         polyline.startCap = RoundCap()
 
 
+    }
+
+    private fun saveLocation(location: Location) {
+        var dirName = dateRun + startTimeRun
+        dirName = dirName.replace("/", "")
+        dirName = dirName.replace(":", "")
+
+        var docName = timeInSeconds.toString()
+        while (docName.length < 5) docName = "0$docName"
+
+        var ms:Boolean
+        //if (speed == maxSpeed && speed > 0) ms = true
+        ms = speed == maxSpeed && speed > 0
+
+        var dbLocation = FirebaseFirestore.getInstance()
+        dbLocation.collection("location/$useremail/$dirName").document(docName).set(
+            hashMapOf(
+                "time" to SimpleDateFormat("HH:mm:ss").format(Date()),
+                "latitude" to location.latitude,
+                "longitude" to location.longitude,
+                "altitude" to location.altitude,
+                "hasAltitude" to location.hasAltitude(),
+                "speedFromGoogle" to location.speed,
+                "speedFromMe" to speed,
+                "maxSpeed" to ms,
+                "isRunning" to isRunning,
+                "isWalking" to isWalking
+                )
+        )
     }
 
     fun selectBike(v: View) {
@@ -1745,46 +2012,56 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             tvMaxSpeedRecord.text = ""
     }
 
-    private fun updateTotalsUser(){
+    private fun updateTotalsUser() {
         totalsSelectedSport.totalRuns = totalsSelectedSport.totalRuns!! + 1
         totalsSelectedSport.totalDistance = totalsSelectedSport.totalDistance!! + distance
         totalsSelectedSport.totalTime = totalsSelectedSport.totalTime!! + timeInSeconds.toInt()
 
-        if (distance > totalsSelectedSport.recordDistance!!){
+        if (distance > totalsSelectedSport.recordDistance!!) {
             totalsSelectedSport.recordDistance = distance
         }
-        if (maxSpeed > totalsSelectedSport.recordSpeed!!){
+        if (maxSpeed > totalsSelectedSport.recordSpeed!!) {
             totalsSelectedSport.recordSpeed = speed
         }
-        if (avgSpeed > totalsSelectedSport.recordAvgSpeed!!){
+        if (avgSpeed > totalsSelectedSport.recordAvgSpeed!!) {
             totalsSelectedSport.recordAvgSpeed = avgSpeed
         }
 
-        totalsSelectedSport.totalDistance = roundNumber(totalsSelectedSport.totalDistance.toString(),1).toDouble()
-        totalsSelectedSport.recordDistance = roundNumber(totalsSelectedSport.recordDistance.toString(),1).toDouble()
-        totalsSelectedSport.recordSpeed = roundNumber(totalsSelectedSport.recordSpeed.toString(),1).toDouble()
-        totalsSelectedSport.recordAvgSpeed = roundNumber(totalsSelectedSport.recordAvgSpeed.toString(),1).toDouble()
+        totalsSelectedSport.totalDistance =
+            roundNumber(totalsSelectedSport.totalDistance.toString(), 1).toDouble()
+        totalsSelectedSport.recordDistance =
+            roundNumber(totalsSelectedSport.recordDistance.toString(), 1).toDouble()
+        totalsSelectedSport.recordSpeed =
+            roundNumber(totalsSelectedSport.recordSpeed.toString(), 1).toDouble()
+        totalsSelectedSport.recordAvgSpeed =
+            roundNumber(totalsSelectedSport.recordAvgSpeed.toString(), 1).toDouble()
 
         var collection = "totals$sportSelected"
         var dbUpdateTotals = FirebaseFirestore.getInstance()
 
-        dbUpdateTotals.collection(collection).document(useremail).update("recordAvgSpeed", totalsSelectedSport.recordAvgSpeed)
-        dbUpdateTotals.collection(collection).document(useremail).update("recordDistance", totalsSelectedSport.recordDistance)
-        dbUpdateTotals.collection(collection).document(useremail).update("recordSpeed", totalsSelectedSport.recordSpeed)
-        dbUpdateTotals.collection(collection).document(useremail).update("totalDistance", totalsSelectedSport.totalDistance)
-        dbUpdateTotals.collection(collection).document(useremail).update("totalRuns", totalsSelectedSport.totalRuns)
-        dbUpdateTotals.collection(collection).document(useremail).update("totalTime", totalsSelectedSport.totalTime)
+        dbUpdateTotals.collection(collection).document(useremail)
+            .update("recordAvgSpeed", totalsSelectedSport.recordAvgSpeed)
+        dbUpdateTotals.collection(collection).document(useremail)
+            .update("recordDistance", totalsSelectedSport.recordDistance)
+        dbUpdateTotals.collection(collection).document(useremail)
+            .update("recordSpeed", totalsSelectedSport.recordSpeed)
+        dbUpdateTotals.collection(collection).document(useremail)
+            .update("totalDistance", totalsSelectedSport.totalDistance)
+        dbUpdateTotals.collection(collection).document(useremail)
+            .update("totalRuns", totalsSelectedSport.totalRuns)
+        dbUpdateTotals.collection(collection).document(useremail)
+            .update("totalTime", totalsSelectedSport.totalTime)
 
-        when(sportSelected){
+        when (sportSelected) {
 
-            "Bike"->{
-             totalsBike = totalsSelectedSport
+            "Bike" -> {
+                totalsBike = totalsSelectedSport
             }
-            "Running"->{
+            "Running" -> {
                 totalsRunning = totalsSelectedSport
             }
 
-            "RollerSkate"->{
+            "RollerSkate" -> {
                 totalsRollerSkate = totalsRollerSkate
             }
         }
@@ -1819,6 +2096,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     fun manageRun() {
 
+        dateRun = SimpleDateFormat("yyyy/MM/dd").format(Date())
+        startTimeRun = SimpleDateFormat("HH:mm:ss").format(Date())
 
         if (timeInSeconds.toInt() == 0) {
             fbCamara.isVisible = true
@@ -1958,7 +2237,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private fun resetClicked() {
 
         savePreferences()
-
+        saveDataRun()
         updateTotalsUser()
         setLevelSport(sportSelected)
         showPopUp()
@@ -1966,6 +2245,79 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         resetTimeView()
         resetInterface()
+    }
+
+    private fun saveDataRun() {
+
+        var id: String = useremail + dateRun + startTimeRun
+        id = id.replace(":", "")
+        id = id.replace("/", "")
+
+        var saveDuration = tvChrono.text.toString()
+
+        var saveDistance = roundNumber(distance.toString(), 1)
+        var saveAvgSpeed = roundNumber(avgSpeed.toString(), 1)
+        var saveMaxSpeed = roundNumber(maxSpeed.toString(), 1)
+
+        var centerLatitude = (minLatitude!! + maxLatitude!!) / 2
+        var centerLongitude = (minLongitude!! + maxLongitude!!) / 2
+
+        var collection = "runs$sportSelected"
+        var dbRun = FirebaseFirestore.getInstance()
+        dbRun.collection(collection).document(id).set(
+            hashMapOf(
+                "user" to useremail,
+                "date" to dateRun,
+                "startTime" to startTimeRun,
+                "sport" to sportSelected,
+                "activatedGPS" to activatedGPS,
+                "duration" to saveDuration,
+                "distance" to saveDistance.toDouble(),
+                "avgSpeed" to saveAvgSpeed.toDouble(),
+                "maxSpeed" to saveMaxSpeed.toDouble(),
+                "minAltitude" to minAltitude,
+                "maxAltitude" to maxAltitude,
+                "minLatitude" to minLatitude,
+                "maxLatitude" to maxLatitude,
+                "minLongitude" to minLongitude,
+                "maxLongitude" to maxLongitude,
+                "centerLatitude" to centerLatitude,
+                "centerLongitude" to centerLongitude
+            )
+        )
+
+        if (swIntervalMode.isChecked) {
+            dbRun.collection(collection).document(id).update("intervalMode", true)
+            dbRun.collection(collection).document(id)
+                .update("intervalDuration", npDurationInterval.value)
+            dbRun.collection(collection).document(id)
+                .update("runningTime", tvRunningTime.text.toString())
+            dbRun.collection(collection).document(id)
+                .update("walkingTime", tvWalkingTime.text.toString())
+        }
+
+        if (swChallenges.isChecked) {
+            if (challengeDistance > 0f)
+                dbRun.collection(collection).document(id).update(
+                    "challengeDistance",
+                    roundNumber(challengeDistance.toString(), 1).toDouble()
+                )
+            if (challengeDuration > 0)
+                dbRun.collection(collection).document(id)
+                    .update("challengeDuration", getFormattedStopWatch(challengeDuration.toLong()))
+        }
+
+    }
+
+    fun deleteRun(v: View){
+        var id:String = useremail + dateRun + startTimeRun
+        id = id.replace(":", "")
+        id = id.replace("/", "")
+
+        var lyPopUpRun = findViewById<LinearLayout>(R.id.lyPopupRun)
+
+        deleteRunAndLinkedData(id,sportSelected,lyPopUpRun)
+
     }
 
     private fun resetVariablesRun() {
@@ -2177,56 +2529,60 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         var tvTotalDistance = findViewById<TextView>(R.id.tvTotalDistance)
         var tvTotalTime = findViewById<TextView>(R.id.tvTotalTime)
 
-        when(sportSelected){
-            "Bike"->{
+        when (sportSelected) {
+            "Bike" -> {
                 levelSelectedSport = levelBike
                 setLevelBike()
                 ivSportSelected.setImageResource(R.mipmap.bike)
             }
 
-            "RollerSkare"->{
+            "RollerSkare" -> {
                 levelSelectedSport = levelRollerSkate
                 setLevelRollerSkate()
                 ivSportSelected.setImageResource(R.mipmap.rollerskate)
             }
-            "Running"->{
+            "Running" -> {
                 levelSelectedSport = levelRunning
                 setLevelRunning()
                 ivSportSelected.setImageResource(R.mipmap.running)
             }
         }
         var tvNumberLevel = findViewById<TextView>(R.id.tvNumberLevel)
-        var levelText = "${getString(R.string.level)} ${levelSelectedSport.image!!.subSequence(6,7).toString()}"
+        var levelText = "${getString(R.string.level)} ${
+            levelSelectedSport.image!!.subSequence(6, 7).toString()
+        }"
         tvNumberLevel.text = levelText
 
         csbRunsLevel.max = levelSelectedSport.RunsTarget!!.toFloat()
         csbRunsLevel.progress = totalsSelectedSport.totalRuns!!.toFloat()
-        if (totalsSelectedSport.totalRuns!! > levelSelectedSport.RunsTarget!!.toInt()){
+        if (totalsSelectedSport.totalRuns!! > levelSelectedSport.RunsTarget!!.toInt()) {
             csbRunsLevel.max = levelSelectedSport.RunsTarget!!.toFloat()
             csbRunsLevel.progress = csbRunsLevel.max
         }
 
         csbDistanceLevel.max = levelSelectedSport.DistanceTarget!!.toFloat()
         csbDistanceLevel.progress = totalsSelectedSport.totalDistance!!.toFloat()
-        if (totalsSelectedSport.totalDistance!! > levelSelectedSport.DistanceTarget!!.toInt()){
+        if (totalsSelectedSport.totalDistance!! > levelSelectedSport.DistanceTarget!!.toInt()) {
             csbDistanceLevel.max = levelSelectedSport.DistanceTarget!!.toFloat()
             csbDistanceLevel.progress = csbDistanceLevel.max
         }
 
-        tvTotalRunsLevel.text = "${totalsSelectedSport.totalRuns!!}/${levelSelectedSport.RunsTarget!!}"
+        tvTotalRunsLevel.text =
+            "${totalsSelectedSport.totalRuns!!}/${levelSelectedSport.RunsTarget!!}"
 
         var td = totalsSelectedSport.totalDistance!!
         var td_k: String = td.toString()
-        if (td > 1000) td_k = (td/1000).toInt().toString() + "K"
+        if (td > 1000) td_k = (td / 1000).toInt().toString() + "K"
         var ld = levelSelectedSport.DistanceTarget!!.toDouble()
         var ld_k: String = ld.toInt().toString()
-        if (ld > 1000) ld_k = (ld/1000).toInt().toString() + "K"
+        if (ld > 1000) ld_k = (ld / 1000).toInt().toString() + "K"
         tvTotalDistance.text = "${td_k}/${ld_k} kms"
 
-        var porcent = (totalsSelectedSport.totalDistance!!.toDouble() *100 / levelSelectedSport.DistanceTarget!!.toDouble()).toInt()
+        var porcent =
+            (totalsSelectedSport.totalDistance!!.toDouble() * 100 / levelSelectedSport.DistanceTarget!!.toDouble()).toInt()
         tvTotalDistanceLevel.text = "$porcent%"
 
-        when (levelSelectedSport.image){
+        when (levelSelectedSport.image) {
             "level_1" -> ivCurrentLevel.setImageResource(R.drawable.level_1)
             "level_2" -> ivCurrentLevel.setImageResource(R.drawable.level_2)
             "level_3" -> ivCurrentLevel.setImageResource(R.drawable.level_3)
