@@ -95,6 +95,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     GoogleMap.OnMyLocationClickListener {
     companion object {
         lateinit var mainContext: Context
+        var activatedGPS: Boolean = true
 
         lateinit var totalsSelectedSport: Totals
         lateinit var totalsBike: Totals
@@ -194,7 +195,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private val PERMISSION_ID = 42
     private val LOCATION_PERMISSION_REQ_CODE = 1000
 
-    private var activatedGPS: Boolean = true
+
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private var flagSavedLocation = false
     private var latitude: Double = 0.0
@@ -2096,10 +2097,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     fun manageRun() {
 
-        dateRun = SimpleDateFormat("yyyy/MM/dd").format(Date())
-        startTimeRun = SimpleDateFormat("HH:mm:ss").format(Date())
+
 
         if (timeInSeconds.toInt() == 0) {
+            dateRun = SimpleDateFormat("yyyy/MM/dd").format(Date())
+            startTimeRun = SimpleDateFormat("HH:mm:ss").format(Date())
             fbCamara.isVisible = true
 
             swIntervalMode.isClickable = false

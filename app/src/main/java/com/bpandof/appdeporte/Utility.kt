@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.View
 import android.widget.LinearLayout
 import com.bpandof.appdeporte.LoginActivity.Companion.useremail
+import com.bpandof.appdeporte.MainActivity.Companion.activatedGPS
 import com.bpandof.appdeporte.MainActivity.Companion.totalsBike
 import com.bpandof.appdeporte.MainActivity.Companion.totalsRollerSkate
 import com.bpandof.appdeporte.MainActivity.Companion.totalsRunning
@@ -118,7 +119,7 @@ object Utility {
     fun deleteRunAndLinkedData(idRun: String, sport: String, ly: LinearLayout, cr: Runs) {
 
         //si teniamos el GPS, borramos las ubicaciones
-
+        if (activatedGPS) deleteLocations(idRun, useremail)
         // si habia todos, borramos todas las fotos
 
         //revisamos los totales y los records
@@ -127,6 +128,30 @@ object Utility {
         //borramos la carrera
 
         deleteRun(idRun, sport, ly)
+    }
+
+    private fun deleteLocations(idRun: String, user: String){
+        var idLocations = idRun.subSequence(user.length, idRun.length).toString()
+
+        var dbLocations = FirebaseFirestore.getInstance()
+        dbLocations.collection("location/$user/$idLocations")
+            .get()
+            .addOnSuccessListener { documents->
+                for (docLocation in documents){
+                    var dbLoc = FirebaseFirestore.getInstance()
+                    dbLoc.collection("location/$user/$idLocations").document(docLocation.id)
+                        .delete()
+                        .addOnFailureListener { exception->
+                            Log.e(ContentValues.TAG,"Error getting documents: ",exception)
+
+                        }
+                }
+
+            }
+            .addOnFailureListener { exception ->
+                Log.w(ContentValues.TAG, "Error getting documents: ", exception)
+
+            }
     }
 
     private fun checkRecords(cr: Runs, sport: String, user: String) {
