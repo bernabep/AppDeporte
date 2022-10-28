@@ -2316,7 +2316,16 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         var lyPopUpRun = findViewById<LinearLayout>(R.id.lyPopupRun)
 
-        deleteRunAndLinkedData(id,sportSelected,lyPopUpRun)
+        var currentRun = Runs()
+        currentRun.distance = roundNumber(distance.toString(),1).toDouble()
+        currentRun.avgSpeed = roundNumber(avgSpeed.toString(),1).toDouble()
+        currentRun.maxSpeed = roundNumber(maxSpeed.toString(),1).toDouble()
+        currentRun.duration = tvChrono.text.toString()
+
+        deleteRunAndLinkedData(id,sportSelected,lyPopUpRun,currentRun)
+        loadMedalsUser()
+        setLevelSport(sportSelected)
+        closePopUpRun()
 
     }
 

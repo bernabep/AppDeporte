@@ -1,39 +1,50 @@
 package com.bpandof.appdeporte
 
 import android.animation.ObjectAnimator
+import android.content.ContentValues
 import android.graphics.Color
+import android.util.Log
 import android.view.View
 import android.widget.LinearLayout
+import com.bpandof.appdeporte.LoginActivity.Companion.useremail
+import com.bpandof.appdeporte.MainActivity.Companion.totalsBike
+import com.bpandof.appdeporte.MainActivity.Companion.totalsRollerSkate
+import com.bpandof.appdeporte.MainActivity.Companion.totalsRunning
+import com.bpandof.appdeporte.MainActivity.Companion.totalsSelectedSport
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import io.grpc.ClientStreamTracer.StreamInfo
 import java.util.concurrent.TimeUnit
 
 object Utility {
-
+    private var totalsChecked: Int = 0
 
     fun getFormattedTotalTime(secs: Long): String {
         var seconds: Long = secs
-        var total: String =""
+        var total: String = ""
 
         //1 dia = 86400s
         //1 mes (30 dias) = 2592000s
         //365 dias = 31536000s
 
         var years: Int = 0
-        while (seconds >=  31536000) { years++; seconds-=31536000; }
+        while (seconds >= 31536000) {
+            years++; seconds -= 31536000; }
 
         var months: Int = 0
-        while (seconds >=  2592000) { months++; seconds-=2592000; }
+        while (seconds >= 2592000) {
+            months++; seconds -= 2592000; }
 
         var days: Int = 0
-        while (seconds >=  86400) { days++; seconds-=86400; }
+        while (seconds >= 86400) {
+            days++; seconds -= 86400; }
 
         if (years > 0) total += "${years}y "
         if (months > 0) total += "${months}m "
         if (days > 0) total += "${days}d "
 
-        total += getFormattedStopWatch(seconds*1000)
+        total += getFormattedStopWatch(seconds * 1000)
 
         return total
     }
@@ -104,31 +115,136 @@ object Utility {
 
     /*FUNCIONES DE BORRADO DE CARRERA */
 
-    fun deleteRunAndLinkedData(idRun:String,sport:String,ly:LinearLayout){
+    fun deleteRunAndLinkedData(idRun: String, sport: String, ly: LinearLayout, cr: Runs) {
 
         //si teniamos el GPS, borramos las ubicaciones
 
         // si habia todos, borramos todas las fotos
 
         //revisamos los totales y los records
-
+        updateTotals(cr)
+        checkRecords(cr, sport, useremail)
         //borramos la carrera
 
-        deleteRun(idRun,sport,ly)
+        deleteRun(idRun, sport, ly)
     }
-    private fun deleteRun(idRun: String,sport: String,ly: LinearLayout){
+
+    private fun checkRecords(cr: Runs, sport: String, user: String) {
+        totalsChecked = 0
+        checkDistanceRecord(cr, sport, user)
+        //checkAvgSpeedRecord(cr,sport,user)
+        //checkMaxSpeedRecord(cr,sport,user)
+    }
+
+    private fun checkDistanceRecord(cr: Runs, sport: String, user: String) {
+        if (cr.distance == totalsSelectedSport.recordDistance) {
+            var dbRecords = FirebaseFirestore.getInstance()
+            dbRecords.collection("runs$sport")
+                .orderBy("distance", Query.Direction.DESCENDING)
+                .whereEqualTo("user", user)
+                .get()
+                .addOnSuccessListener { documents ->
+                    if (documents.size() == 1) totalsSelectedSport.recordDistance = 0.0
+                    else totalsSelectedSport.recordDistance =
+                        documents.documents[1].get("distance").toString().toDouble()
+
+                    var collection = "totals$sport"
+                    var dbUpdateTotals = FirebaseFirestore.getInstance()
+                    dbUpdateTotals.collection(collection).document(user)
+                        .update("recordDistance", totalsSelectedSport.recordDistance)
+
+                    totalsChecked++
+                    if (totalsChecked == 3) refreshTotalsSport(sport)
+                }
+                .addOnFailureListener { exception ->
+                    Log.w(ContentValues.TAG, "Error gettin documents WHERE EQUAL TO: ", exception)
+                }
+        }
+    }
+
+    private fun checkAvgSpeedRecord(cr: Runs, sport: String, user: String){
+        if (cr.avgSpeed!! == totalsSelectedSport.recordAvgSpeed){
+            var dbRecords = FirebaseFirestore.getInstance()
+            dbRecords.collection("runs$sport")
+                .orderBy("avgSpeed", Query.Direction.DESCENDING)
+                .whereEqualTo("user", user)
+                .get()
+                .addOnSuccessListener { documents ->
+
+                    if (documents.size() == 1)  totalsSelectedSport.recordAvgSpeed = 0.0
+                    else  totalsSelectedSport.recordAvgSpeed = documents.documents[1].get("avgSpeed").toString().toDouble()
+
+                    var collection = "totals$sport"
+                    var dbUpdateTotals = FirebaseFirestore.getInstance()
+                    dbUpdateTotals.collection(collection).document(user)
+                        .update("recordAvgSpeed", totalsSelectedSport.recordAvgSpeed)
+
+                    totalsChecked++
+                    if (totalsChecked == 3) refreshTotalsSport(sport)
+
+                }
+                .addOnFailureListener { exception ->
+                    Log.w(ContentValues.TAG, "Error getting documents WHERE EQUAL TO: ", exception)
+                }
+        }
+    }
+    private fun checkMaxSpeedRecord(cr: Runs, sport: String, user: String){
+        if (cr.maxSpeed!! == totalsSelectedSport.recordSpeed){
+            var dbRecords = FirebaseFirestore.getInstance()
+            dbRecords.collection("runs$sport")
+                .orderBy("maxSpeed", Query.Direction.DESCENDING)
+                .whereEqualTo("user", user)
+                .get()
+                .addOnSuccessListener { documents ->
+
+                    if (documents.size() == 1)  totalsSelectedSport.recordSpeed = 0.0
+                    else  totalsSelectedSport.recordSpeed = documents.documents[1].get("maxSpeed").toString().toDouble()
+
+                    var collection = "totals$sport"
+                    var dbUpdateTotals = FirebaseFirestore.getInstance()
+                    dbUpdateTotals.collection(collection).document(user)
+                        .update("recordSpeed", totalsSelectedSport.recordSpeed)
+
+                    totalsChecked++
+                    if (totalsChecked == 3) refreshTotalsSport(sport)
+
+                }
+                .addOnFailureListener { exception ->
+                    Log.w(ContentValues.TAG, "Error getting documents WHERE EQUAL TO: ", exception)
+                }
+        }
+    }
+
+    private fun refreshTotalsSport(sport: String) {
+        when (sport) {
+            "Bike" -> totalsBike = totalsSelectedSport
+            "RollerSkate" -> totalsRollerSkate = totalsSelectedSport
+            "Running" -> totalsRunning = totalsSelectedSport
+        }
+
+    }
+
+    private fun updateTotals(cr: Runs) {
+        totalsSelectedSport.totalDistance = totalsSelectedSport.recordDistance!! - cr.distance!!
+        totalsSelectedSport.totalRuns = totalsSelectedSport.totalRuns!! - 1
+        totalsSelectedSport.totalTime =
+            totalsSelectedSport.totalTime!! - getSecFromWatch(cr.duration!!)
+    }
+
+    private fun deleteRun(idRun: String, sport: String, ly: LinearLayout) {
         var dbRun = FirebaseFirestore.getInstance()
         dbRun.collection("runs$sport").document(idRun)
             .delete()
             .addOnSuccessListener {
-                Snackbar.make(ly,"Registro Borrado",Snackbar.LENGTH_LONG).setAction("OK"){
+                Snackbar.make(ly, "Registro Borrado", Snackbar.LENGTH_LONG).setAction("OK") {
                     ly.setBackgroundColor(Color.CYAN)
                 }.show()
             }
-            .addOnFailureListener{
-                Snackbar.make(ly,"Error al borrar el registro",Snackbar.LENGTH_LONG).setAction("OK"){
-                    ly.setBackgroundColor(Color.CYAN)
-                }.show()
+            .addOnFailureListener {
+                Snackbar.make(ly, "Error al borrar el registro", Snackbar.LENGTH_LONG)
+                    .setAction("OK") {
+                        ly.setBackgroundColor(Color.CYAN)
+                    }.show()
             }
 
 
