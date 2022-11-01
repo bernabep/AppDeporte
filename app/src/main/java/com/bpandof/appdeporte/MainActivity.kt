@@ -27,6 +27,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
+import androidx.core.view.GravityCompat.START
 import androidx.core.view.isVisible
 import androidx.drawerlayout.widget.DrawerLayout
 import com.bpandof.appdeporte.Constants.INTERVAL_LOCATION
@@ -262,10 +263,44 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     override fun onBackPressed() {
         //super.onBackPressed()
-        if (drawer.isDrawerOpen(GravityCompat.START))
-            drawer.closeDrawer(GravityCompat.START)
+        if (lyPopupRun.isVisible) closePopUpRun()
+
+        if (drawer.isDrawerOpen(START))
+            drawer.closeDrawer(START)
         else
-            signOut()
+            if (timeInSeconds > 0L) resetClicked()
+        alertSignOut()
+    }
+
+    /*private fun alertSignOut() {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.alertSignOutTittle)
+            .setMessage(R.string.alertSignOutTDescription)
+            .setPositiveButton(android.R.string.ok,
+                DialogInterface.OnClickListener { dialog, which ->
+                    //Boton OK pulsado
+                    signOut()
+                })
+            .setNegativeButton(android.R.string.cancel,
+                DialogInterface.OnClickListener { dialog, which ->
+                    //botón cancel pulsado
+
+                })
+            .setCancelable(true)
+            .show()
+    }*/
+    private fun alertSignOut() {
+        myAlertDialog(
+            getString(R.string.alertSignOutTittle),
+            getString(R.string.alertSignOutTDescription),
+            getString(R.string.textLeftButtonAlertCancelar),
+            getString(R.string.textRightButtonAlertAceptar),
+            getColor(R.color.blue),
+            getColor(R.color.purple_200),
+            getColor(R.color.black_trans),
+            { Toast.makeText(this,getString(R.string.textLeftButtonAlertCancelar),Toast.LENGTH_SHORT).show() },
+            { signOut() }
+            )
     }
 
     private fun initToolBar() {
@@ -1278,7 +1313,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         startActivity(Intent(this, LoginActivity::class.java))
     }
 
-    private fun alertClearPreferences() {
+    /*private fun alertClearPreferences() {
         AlertDialog.Builder(this)
             .setTitle(getString(R.string.alertClearPreferencesTitle))
             .setMessage(getString(R.string.alertClearPreferencesDescription))
@@ -1293,6 +1328,19 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             .setCancelable(true)
             .show()
 
+    }*/
+    private fun alertClearPreferences() {
+        myAlertDialog(
+            getString(R.string.alertClearPreferencesTitle),
+            getString(R.string.alertClearPreferencesDescription),
+            getString(android.R.string.cancel),
+            getString(android.R.string.ok),
+            getColor(R.color.gray_medium),
+            getColor(R.color.blue),
+            getColor(R.color.gray_trans),
+            { Toast.makeText(this,getString(android.R.string.cancel),Toast.LENGTH_SHORT).show() },
+            {callClearPreferences()}
+        )
     }
 
     private fun callClearPreferences() {
@@ -1305,10 +1353,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         when (item.itemId) {
             R.id.nav_item_record -> callRecordActivity()
             R.id.nav_item_clearpreferences -> alertClearPreferences()
-            R.id.nav_item_signout -> signOut()
+            R.id.nav_item_signout -> alertSignOut()
         }
 
-        drawer.closeDrawer(GravityCompat.START)
+        drawer.closeDrawer(START)
 
         return true
     }
@@ -1860,7 +1908,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         var docName = timeInSeconds.toString()
         while (docName.length < 5) docName = "0$docName"
 
-        var ms:Boolean
+        var ms: Boolean
         //if (speed == maxSpeed && speed > 0) ms = true
         ms = speed == maxSpeed && speed > 0
 
@@ -1877,7 +1925,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 "maxSpeed" to ms,
                 "isRunning" to isRunning,
                 "isWalking" to isWalking
-                )
+            )
         )
     }
 
@@ -1921,6 +1969,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
                 levelSelectedSport = levelBike
                 totalsSelectedSport = totalsBike
+
+                medalsListSportSelectedDistance = medalsListBikeDistance
+                medalsListSportSelectedAvgSpeed = medalsListBikeAvgSpeed
+                medalsListSportSelectedMaxSpeed = medalsListBikeMaxSpeed
+
             }
             "RollerSkate" -> {
                 LIMIT_DISTANCE_ACCEPTED = LIMIT_DISTANCE_ACCEPTED_ROLLERSKATE
@@ -1946,6 +1999,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
                 levelSelectedSport = levelRollerSkate
                 totalsSelectedSport = totalsRollerSkate
+
+                medalsListSportSelectedDistance = medalsListRollerSkateDistance
+                medalsListSportSelectedAvgSpeed = medalsListRollerSkateAvgSpeed
+                medalsListSportSelectedMaxSpeed = medalsListRollerSkateMaxSpeed
             }
             "Running" -> {
                 LIMIT_DISTANCE_ACCEPTED = LIMIT_DISTANCE_ACCEPTED_RUNNING
@@ -1971,6 +2028,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
                 levelSelectedSport = levelRunning
                 totalsSelectedSport = totalsRunning
+
+                medalsListSportSelectedDistance = medalsListRunningDistance
+                medalsListSportSelectedAvgSpeed = medalsListRunningAvgSpeed
+                medalsListSportSelectedMaxSpeed = medalsListRunningMaxSpeed
             }
         }
 
@@ -2057,13 +2118,23 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
             "Bike" -> {
                 totalsBike = totalsSelectedSport
+                medalsListBikeDistance = medalsListSportSelectedDistance
+                medalsListBikeAvgSpeed = medalsListSportSelectedAvgSpeed
+                medalsListBikeMaxSpeed = medalsListSportSelectedMaxSpeed
+
             }
             "Running" -> {
                 totalsRunning = totalsSelectedSport
+                medalsListRunningDistance = medalsListSportSelectedDistance
+                medalsListRunningAvgSpeed = medalsListSportSelectedAvgSpeed
+                medalsListRunningMaxSpeed = medalsListSportSelectedMaxSpeed
             }
 
             "RollerSkate" -> {
                 totalsRollerSkate = totalsRollerSkate
+                medalsListRollerSkateDistance = medalsListSportSelectedDistance
+                medalsListRollerSkateAvgSpeed = medalsListSportSelectedAvgSpeed
+                medalsListRollerSkateMaxSpeed = medalsListSportSelectedMaxSpeed
             }
         }
 
@@ -2076,7 +2147,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     private fun manageStartStop() {
         if (timeInSeconds == 0L && isLocationEnabled() == false) {
-            AlertDialog.Builder(this)
+            /*AlertDialog.Builder(this)
                 .setTitle(getString(R.string.alertActivationGPSTitle))
                 .setMessage(getString(R.string.alertActivationGPSDescription))
                 .setPositiveButton(getString(R.string.aceptActivationGPS),
@@ -2090,13 +2161,24 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     })
 
                 .setCancelable(true)
-                .show()
+                .show()*/
+            myAlertDialog(
+                getString(R.string.alertActivationGPSTitle),
+                getString(R.string.alertActivationGPSDescription),
+                getString(R.string.ignoreActivationGPS),
+                getString(R.string.aceptActivationGPS),
+                getColor(R.color.gray_medium),
+                getColor(R.color.blue),
+                getColor(R.color.blue_trans),
+                {Toast.makeText(this,R.string.ignoreActivationGPS,Toast.LENGTH_SHORT).show()},
+                {activationLocation()}
+            )
+
         } else
             manageRun()
     }
 
     fun manageRun() {
-
 
 
         if (timeInSeconds.toInt() == 0) {
@@ -2311,24 +2393,39 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     }
 
-    fun deleteRun(v: View){
-        var id:String = useremail + dateRun + startTimeRun
+    fun callDeleteRun(v: View) {
+        myAlertDialog(
+            getString(R.string.alertDeleteRunTittle),
+            getString(R.string.alertDeleteRunDescription),
+            getString(R.string.textLeftButtonAlertDeleteRun),
+            getString(R.string.textRightButtonAlertDeleteRun),
+            getColor(R.color.blue),
+            getColor(R.color.purple_200),
+            getColor(R.color.orange_trans),
+            { Toast.makeText(this,getString(R.string.textLeftButtonAlertDeleteRun),Toast.LENGTH_SHORT).show() },
+            { deleteRun() }
+        )
+
+
+
+    }
+    private fun deleteRun(){
+        var id: String = useremail + dateRun + startTimeRun
         id = id.replace(":", "")
         id = id.replace("/", "")
 
         var lyPopUpRun = findViewById<LinearLayout>(R.id.lyPopupRun)
 
         var currentRun = Runs()
-        currentRun.distance = roundNumber(distance.toString(),1).toDouble()
-        currentRun.avgSpeed = roundNumber(avgSpeed.toString(),1).toDouble()
-        currentRun.maxSpeed = roundNumber(maxSpeed.toString(),1).toDouble()
+        currentRun.distance = roundNumber(distance.toString(), 1).toDouble()
+        currentRun.avgSpeed = roundNumber(avgSpeed.toString(), 1).toDouble()
+        currentRun.maxSpeed = roundNumber(maxSpeed.toString(), 1).toDouble()
         currentRun.duration = tvChrono.text.toString()
 
-        deleteRunAndLinkedData(id,sportSelected,lyPopUpRun,currentRun)
+        deleteRunAndLinkedData(id, sportSelected, lyPopUpRun, currentRun)
         loadMedalsUser()
         setLevelSport(sportSelected)
         closePopUpRun()
-
     }
 
     private fun resetVariablesRun() {
@@ -2687,6 +2784,49 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         lyPopupRun = findViewById<LinearLayout>(R.id.lyPopupRun)
         lyPopupRun.isVisible = false
 
+    }
+
+    private fun myAlertDialog(
+        title: String = "",
+        description: String? = "",
+        textButtonLeft: String? = "",
+        textButtonRight: String? = "",
+        colorButtonLeft: Int,
+        colorButtonRight: Int,
+        colorBackground: Int,
+        funLeft: () -> Unit,
+        funRight: () -> Unit
+    ) {
+        var lyAlert = findViewById<LinearLayout>(R.id.lyMainAlert)
+        var btRightAlert = findViewById<Button>(R.id.btRightAlert)
+        var btLeftAlert = findViewById<Button>(R.id.btLeftAlert)
+        var tvTitleAlert = findViewById<TextView>(R.id.tvTitleAlert)
+        var tvDescriptionAlert = findViewById<TextView>(R.id.tvDescriptionAlert)
+
+        var rlMain = findViewById<RelativeLayout>(R.id.rlMain)
+
+        lyAlert.setBackgroundColor(colorBackground)
+        tvTitleAlert.text = title
+        tvDescriptionAlert.text = description
+        btLeftAlert.text = textButtonLeft
+        btLeftAlert.setBackgroundColor(colorButtonLeft)
+        btRightAlert.text = textButtonRight
+        btRightAlert.setBackgroundColor(colorButtonRight)
+
+
+
+        rlMain.isEnabled = false
+        lyAlert.isVisible = true
+        btRightAlert.setOnClickListener {
+            funRight()
+            rlMain.isEnabled = true
+            lyAlert.isVisible = false
+        }
+        btLeftAlert.setOnClickListener {
+            funLeft()
+            rlMain.isEnabled = true
+            lyAlert.isVisible = false
+        }
     }
 
 

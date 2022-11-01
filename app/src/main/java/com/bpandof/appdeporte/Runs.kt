@@ -24,6 +24,4 @@ data class Runs(
     var centerLongitude:Double? = null,
     var sport:String? = null,
     var activateGPS:Boolean? = null
-
-
 )

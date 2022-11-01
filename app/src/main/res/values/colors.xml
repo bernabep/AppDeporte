@@ -15,6 +15,7 @@
     <color name="pastel_yellow">#F9EEB3</color>
     <color name="orange">#FFC107</color>
     <color name="orange_dark">#C7980C</color>
+    <color name="orange_trans">#51FF5202</color>
 
     <color name="blue_pastel">#CCE6FF</color>
     <color name="blue_light">#00BCD4</color>

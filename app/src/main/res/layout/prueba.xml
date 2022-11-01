@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    android:id="@+id/lyMainAlert"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/gray_light_trans"
+    android:gravity="center"
+    android:padding="30dp"
+    android:orientation="vertical">
+    <LinearLayout
+        android:id="@+id/lyTextAlert"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="5dp"
+        android:background="@color/orange"
+        android:gravity="top">
+        <LinearLayout
+            android:id="@+id/lyTitleAlert"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="5dp"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/tvTitleAlert"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAlignment="center"
+                android:textSize="20sp"
+                android:padding="10dp"
+                android:textColor="@color/white"
+                tools:text="¿Este es el titulo?">
+            </TextView>
+            <TextView
+                android:id="@+id/tvDescriptionAlert"
+                android:layout_width="match_parent"
+                android:minHeight="100dp"
+                android:layout_height="wrap_content"
+                android:textAlignment="center"
+                android:textSize="18sp"
+                android:padding="5dp"
+                android:textColor="@color/white"
+                tools:text="Este es la descripcion del mensaje a mostrar">
+            </TextView>
+
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/lyButtonsAlert"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:padding="5dp"
+            android:weightSum="2">
+            <Button
+                android:id="@+id/btLeftAlert"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/textLeftButtonAlertCancelar"
+                android:textSize="12sp"
+                android:layout_marginHorizontal="20dp"
+                android:paddingVertical="5dp"
+                android:layout_weight="1"/>
+
+            <Button
+                android:id="@+id/btRightAlert"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="20dp"
+                android:layout_weight="1"
+                android:paddingVertical="5dp"
+                android:text="@string/textRightButtonAlertAceptar"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>
+
