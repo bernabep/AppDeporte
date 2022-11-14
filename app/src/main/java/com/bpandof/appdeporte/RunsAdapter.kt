@@ -183,7 +183,6 @@ class RunsAdapter(private val runsList: ArrayList<Runs>) : RecyclerView.Adapter<
             notifyItemRemoved(position)
 
         }
-
     }
 
 
