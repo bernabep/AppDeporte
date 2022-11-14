@@ -103,7 +103,7 @@
     <string name="alertClearPreferencesDescription">Borraremos los ajustes de volumen y carrera (modo y tiempo de intervalos) de tu útlima carrera, vamos que tampoco pasa na</string>
     <string name="alertSignOutTittle">"  ¿Quieres cerrar sesión?"</string>
     <string name="alertSignOutTDescription">Puedes volver cuando lo desees :)</string>
-<!-- TODO: Remove or change this placeholder text -->
+    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="textLeftButtonAlertCancelar">Cancelar</string>
     <string name="textRightButtonAlertAceptar">Aceptar</string>
@@ -111,4 +111,12 @@
     <string name="alertDeleteRunDescription">Se borraran todos los datos de esta carrerea, incluido los records conseguidos</string>
     <string name="textLeftButtonAlertDeleteRun">Mantener</string>
     <string name="textRightButtonAlertDeleteRun">ELIMINAR</string>
+
+    <string name="textNotPermitionsCamera">Debes proporcionar permisos si quiere tomar fotos</string>
+
+    <string name="CardAvgSpeedTitle">VEL. PROM.</string>
+    <string name="CardMaxSpeedTitle">VEL. MAX</string>
+    <string name="CardMedalDistance">Kms. [RP]</string>
+    <string name="CardMedalAvgSpeed">V.Máx. [RP]</string>
+    <string name="CardMedalMaxSpeed">V.Pr. [RP]</string>
 </resources>

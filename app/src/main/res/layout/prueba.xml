@@ -8,8 +8,408 @@
     android:layout_height="match_parent"
     android:background="@color/gray_light_trans"
     android:gravity="center"
-    android:padding="30dp"
+
     android:orientation="vertical">
+    <RelativeLayout
+        android:id="@+id/rlTopFixed"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/transparent">
+        <!-- Datos actuales de carrera -->
+        <LinearLayout
+            android:id="@+id/lyCurrentData"
+            android:layout_width="match_parent"
+            android:layout_height="140dp"
+            android:orientation="horizontal"
+            android:layout_marginTop="55dp"
+            android:paddingBottom="10dp"
+            android:paddingTop="10dp"
+            android:background="@color/gray_medium"
+            android:gravity="center">
+            <RelativeLayout
+                android:id="@+id/rlCurrentDistance"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:orientation="vertical"
+                android:layout_margin="5dp"
+                android:layout_gravity="center|right">
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/cvCurrentDistance"
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
+                    app:cardCornerRadius="60dp"
+                    android:background="@color/white"
+                    android:layout_margin="0dp">
+                    <me.tankery.lib.circularseekbar.CircularSeekBar
+                        android:id="@+id/csbChallengeDistance"
+                        android:layout_width="120dp"
+                        android:layout_height="120dp"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_margin="0dp"
+                        android:translationY="0dp"
+                        android:translationZ="10dp"
+                        app:cs_circle_color="@color/transparent"
+                        app:cs_circle_progress_color="@color/blue_trans"
+                        app:cs_circle_stroke_width="8dp"
+                        app:cs_circle_style="butt"
+                        app:cs_disable_pointer="true"
+                        app:cs_end_angle="45"
+                        app:cs_max="100"
+                        app:cs_negative_enabled="true"
+                        app:cs_pointer_angle="0"
+                        app:cs_pointer_stroke_width="8dp"
+                        app:cs_progress="20"
+                        app:cs_start_angle="135" />
+                    <me.tankery.lib.circularseekbar.CircularSeekBar
+                        android:id="@+id/csbCurrentDistance"
+                        android:layout_width="120dp"
+                        android:layout_height="120dp"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_margin="0dp"
+                        android:translationY="0dp"
+                        android:translationZ="5dp"
+                        app:cs_circle_color="@color/transparent"
+                        app:cs_circle_progress_color="@color/orange"
+                        app:cs_circle_stroke_width="8dp"
+                        app:cs_circle_style="butt"
+                        app:cs_disable_pointer="true"
+                        app:cs_end_angle="45"
+                        app:cs_max="100"
+                        app:cs_negative_enabled="true"
+                        app:cs_pointer_angle="0"
+                        app:cs_pointer_stroke_width="8dp"
+                        app:cs_progress="70"
+                        app:cs_start_angle="135" />
+                    <me.tankery.lib.circularseekbar.CircularSeekBar
+                        android:id="@+id/csbRecordDistance"
+                        android:layout_width="120dp"
+                        android:layout_height="120dp"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_margin="0dp"
+                        android:translationY="0dp"
+                        android:translationZ="0dp"
+                        app:cs_circle_color="@color/transparent"
+                        app:cs_circle_progress_color="@color/gray"
+                        app:cs_circle_stroke_width="8dp"
+                        app:cs_circle_style="butt"
+                        app:cs_disable_pointer="true"
+                        app:cs_end_angle="45"
+                        app:cs_max="100"
+                        app:cs_negative_enabled="true"
+                        app:cs_pointer_angle="0"
+                        app:cs_pointer_stroke_width="8dp"
+                        app:cs_progress="100"
+                        app:cs_start_angle="135" />
+
+                    <TextView
+                        android:id="@+id/tvDistanceLabel"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="DISTANCE"
+                        android:textAlignment="center"
+                        android:textColor="@color/gray_medium"
+                        android:textSize="10sp"
+                        android:layout_marginTop="15dp"/>
+                    <TextView
+                        android:id="@+id/tvCurrentDistance"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="0.0"
+                        android:textAlignment="center"
+                        android:textColor="@color/gray_dark"
+                        android:textSize="30sp"
+                        android:layout_marginTop="30dp"/>
+                    <TextView
+                        android:id="@+id/tvDistanceUX"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="KMs."
+                        android:textAlignment="center"
+                        android:textColor="@color/gray_dark"
+                        android:textSize="12sp"
+                        android:layout_marginTop="70dp"/>
+                    <TextView
+                        android:id="@+id/tvDistanceRecord"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="20.16"
+                        android:textAlignment="textEnd"
+                        android:textColor="@color/gray_medium"
+                        android:layout_marginRight="26dp"
+                        android:textSize="14sp"
+                        android:layout_marginTop="93dp"/>
+
+                </androidx.cardview.widget.CardView>
+            </RelativeLayout>
+            <RelativeLayout
+                android:id="@+id/rlCurrentAvg"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:orientation="vertical"
+                android:layout_margin="5dp"
+                android:layout_gravity="center|right">
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/cvCurrentAVGSpeed"
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
+                    app:cardCornerRadius="60dp"
+                    android:background="@color/white"
+                    android:layout_margin="0dp">
+                    <me.tankery.lib.circularseekbar.CircularSeekBar
+                        android:id="@+id/csbCurrentAvgSpeed"
+                        android:layout_width="120dp"
+                        android:layout_height="120dp"
+                        android:translationY="0dp"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_margin="0dp"
+                        android:translationZ="10dp"
+                        app:cs_negative_enabled="true"
+                        app:cs_circle_style="butt"
+                        app:cs_circle_stroke_width="8dp"
+                        app:cs_pointer_stroke_width="8dp"
+                        app:cs_pointer_angle="0"
+                        app:cs_start_angle = "135"
+                        app:cs_end_angle = "45"
+                        app:cs_progress = "20"
+                        app:cs_max = "100"
+                        app:cs_circle_color  = "@color/transparent"
+                        app:cs_circle_progress_color = "@color/orange"
+                        app:cs_disable_pointer="true"/>
+                    <me.tankery.lib.circularseekbar.CircularSeekBar
+                        android:id="@+id/csbRecordAvgSpeed"
+                        android:layout_width="120dp"
+                        android:layout_height="120dp"
+                        android:translationY="0dp"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_margin="0dp"
+                        android:translationZ="5dp"
+                        app:cs_negative_enabled="true"
+                        app:cs_circle_style="butt"
+                        app:cs_circle_stroke_width="8dp"
+                        app:cs_pointer_stroke_width="8dp"
+                        app:cs_pointer_angle="0"
+                        app:cs_start_angle = "135"
+                        app:cs_end_angle = "45"
+                        app:cs_progress = "100"
+                        app:cs_max = "100"
+                        app:cs_circle_color  = "@color/transparent"
+                        app:cs_circle_progress_color = "@color/gray"
+                        app:cs_disable_pointer="true"/>
+
+                    <TextView
+                        android:id="@+id/tvCurrentAvgSpeedLabel"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="AVG SPEED"
+                        android:textAlignment="center"
+                        android:textColor="@color/gray_medium"
+                        android:textSize="10sp"
+                        android:layout_marginTop="15dp"/>
+                    <TextView
+                        android:id="@+id/tvCurrentAvgSpeed"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="0.0"
+                        android:textAlignment="center"
+                        android:textColor="@color/gray_dark"
+                        android:textSize="30sp"
+                        android:layout_marginTop="30dp"/>
+                    <TextView
+                        android:id="@+id/tvCurrentAvgSpeedUX"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="KM/H"
+                        android:textAlignment="center"
+                        android:textColor="@color/gray_dark"
+                        android:textSize="12sp"
+                        android:layout_marginTop="70dp"/>
+                    <TextView
+                        android:id="@+id/tvAvgSpeedRecord"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="13.5"
+                        android:textAlignment="textEnd"
+                        android:textColor="@color/gray_medium"
+                        android:layout_marginRight="26dp"
+                        android:textSize="14sp"
+                        android:layout_marginTop="93dp"/>
+                </androidx.cardview.widget.CardView>
+            </RelativeLayout>
+            <RelativeLayout
+                android:id="@+id/rlCurrentSpeed"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:orientation="vertical"
+                android:layout_margin="5dp"
+                android:layout_gravity="center|right">
+
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/cvCurrentSpeed"
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
+                    app:cardCornerRadius="60dp"
+                    android:background="@color/white"
+                    android:layout_margin="0dp">
+                    <me.tankery.lib.circularseekbar.CircularSeekBar
+                        android:id="@+id/csbCurrentSpeed"
+                        android:layout_width="120dp"
+                        android:layout_height="120dp"
+                        android:translationY="0dp"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_margin="0dp"
+                        android:translationZ="15dp"
+                        app:cs_negative_enabled="true"
+                        app:cs_circle_style="butt"
+                        app:cs_circle_stroke_width="8dp"
+                        app:cs_pointer_stroke_width="8dp"
+                        app:cs_pointer_angle="0"
+                        app:cs_start_angle = "135"
+                        app:cs_end_angle = "45"
+                        app:cs_progress = "20"
+                        app:cs_max = "100"
+                        app:cs_circle_color  = "@color/transparent"
+                        app:cs_circle_progress_color = "@color/orange"
+                        app:cs_disable_pointer="true"/>
+                    <me.tankery.lib.circularseekbar.CircularSeekBar
+                        android:id="@+id/csbCurrentMaxSpeed"
+                        android:layout_width="120dp"
+                        android:layout_height="120dp"
+                        android:translationY="0dp"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_margin="0dp"
+                        android:translationZ="10dp"
+                        app:cs_negative_enabled="true"
+                        app:cs_circle_style="butt"
+                        app:cs_circle_stroke_width="8dp"
+                        app:cs_pointer_stroke_width="8dp"
+                        app:cs_pointer_angle="0"
+                        app:cs_start_angle = "135"
+                        app:cs_end_angle = "45"
+                        app:cs_progress = "70"
+                        app:cs_max = "100"
+                        app:cs_circle_color  = "@color/transparent"
+                        app:cs_circle_progress_color = "@color/salmon_dark"
+                        app:cs_disable_pointer="true"/>
+                    <me.tankery.lib.circularseekbar.CircularSeekBar
+                        android:id="@+id/csbRecordSpeed"
+                        android:layout_width="120dp"
+                        android:layout_height="120dp"
+                        android:translationY="0dp"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_margin="0dp"
+                        android:translationZ="5dp"
+                        app:cs_negative_enabled="true"
+                        app:cs_circle_style="butt"
+                        app:cs_circle_stroke_width="8dp"
+                        app:cs_pointer_stroke_width="8dp"
+                        app:cs_pointer_angle="0"
+                        app:cs_start_angle = "135"
+                        app:cs_end_angle = "45"
+                        app:cs_progress = "100"
+                        app:cs_max = "100"
+                        app:cs_circle_color  = "@color/transparent"
+                        app:cs_circle_progress_color = "@color/gray"
+                        app:cs_disable_pointer="true"/>
+
+                    <TextView
+                        android:id="@+id/tvSpeedLabel"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="SPEED"
+                        android:textAlignment="center"
+                        android:textColor="@color/gray_medium"
+                        android:textSize="10sp"
+                        android:layout_marginTop="15dp"/>
+                    <TextView
+                        android:id="@+id/tvCurrentSpeed"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="0.0"
+                        android:textAlignment="center"
+                        android:textColor="@color/gray_dark"
+                        android:textSize="30sp"
+                        android:layout_marginTop="30dp"/>
+                    <TextView
+                        android:id="@+id/tvSpeedUX"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="KM/H"
+                        android:textAlignment="center"
+                        android:textColor="@color/gray_dark"
+                        android:textSize="12sp"
+                        android:layout_marginTop="70dp"/>
+                    <TextView
+                        android:id="@+id/tvMaxSpeedRecord"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="16.3"
+                        android:textAlignment="textEnd"
+                        android:textColor="@color/gray_medium"
+                        android:layout_marginRight="26dp"
+                        android:textSize="14sp"
+                        android:layout_marginTop="93dp"/>
+
+                </androidx.cardview.widget.CardView>
+            </RelativeLayout>
+        </LinearLayout>
+
+
+        <RelativeLayout
+            android:id="@+id/lyChrono"
+            android:layout_width="match_parent"
+            android:layout_height="87dp"
+            android:orientation="horizontal"
+            android:layout_marginTop="198dp"
+            android:gravity="top"
+            android:background="@color/gray_dark">
+
+            <LinearLayout
+                android:id="@+id/lyChronoProgressBg"
+                android:layout_width="match_parent"
+                android:layout_height="77dp"
+                android:orientation="horizontal"
+                android:background="@color/orange"/>
+            <LinearLayout
+                android:id="@+id/lyRoundProgressBg"
+                android:layout_width="match_parent"
+                android:layout_height="10dp"
+                android:orientation="horizontal"
+                android:background="@color/salmon_dark"
+                android:translationY="77dp"
+                android:translationX="0dp"/>
+
+            <LinearLayout
+                android:id="@+id/lyChronoRound"
+                android:layout_width="match_parent"
+                android:layout_height="77dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+                <TextView
+                    android:id="@+id/tvChrono"
+                    android:layout_width="210dp"
+                    android:layout_height="77dp"
+                    android:gravity="center"
+                    android:text="@string/init_stop_watch_value"
+                    android:textColor="@color/white"
+                    android:textSize="50sp"
+                    android:textStyle="bold"/>
+
+                <TextView
+                    android:id="@+id/tvRounds"
+                    android:layout_width="wrap_content"
+                    android:layout_height="30dp"
+                    android:text=""
+                    android:textAlignment="center"
+                    android:textColor="@color/gray_dark"
+                    android:textSize="24sp"/>
+            </LinearLayout>
+
+        </RelativeLayout>
+
+    </RelativeLayout>
     <LinearLayout
         android:id="@+id/lyTextAlert"
         android:layout_width="match_parent"
@@ -75,5 +475,6 @@
                 android:textSize="12sp" />
         </LinearLayout>
     </LinearLayout>
+
 </LinearLayout>
 

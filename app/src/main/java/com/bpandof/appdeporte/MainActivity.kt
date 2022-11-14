@@ -3,6 +3,8 @@ package com.bpandof.appdeporte
 import android.Manifest
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.ContentValues
 import android.content.Context
 import android.content.DialogInterface
@@ -12,6 +14,7 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
 import android.media.MediaPlayer
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -25,6 +28,8 @@ import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.core.view.GravityCompat.START
@@ -106,9 +111,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         val REQUIRED_PERMISSIONS_GPS =
             arrayOf(
-                Manifest.permission.ACCESS_COARSE_LOCATION,
-                Manifest.permission.ACCESS_FINE_LOCATION
+                android.Manifest.permission.ACCESS_COARSE_LOCATION,
+                android.Manifest.permission.ACCESS_FINE_LOCATION
             )
+        var countPhotos: Int = 0
+        var lastimage:String = ""
     }
 
     private lateinit var sharedPreferences: SharedPreferences
@@ -124,6 +131,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     //VARIABLES BPANDOF
     private var isRunning: Boolean = false
     private var isWalking: Boolean = false
+    private var recordDistanceObtained: Boolean = false
+
 
     //
 
@@ -246,6 +255,15 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private lateinit var medalsListSportSelectedAvgSpeed: ArrayList<Double>
     private lateinit var medalsListSportSelectedMaxSpeed: ArrayList<Double>
 
+    private var recDistanceGold: Boolean = false
+    private var recDistanceSilver: Boolean = false
+    private var recDistanceBronze: Boolean = false
+    private var recAvgSpeedGold: Boolean = false
+    private var recAvgSpeedSilver: Boolean = false
+    private var recAvgSpeedBronze: Boolean = false
+    private var recMaxSpeedGold: Boolean = false
+    private var recMaxSpeedSilver: Boolean = false
+    private var recMaxSpeedBronze: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -271,6 +289,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             if (timeInSeconds > 0L) resetClicked()
         alertSignOut()
     }
+
 
     /*private fun alertSignOut() {
         AlertDialog.Builder(this)
@@ -298,9 +317,15 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             getColor(R.color.blue),
             getColor(R.color.purple_200),
             getColor(R.color.black_trans),
-            { Toast.makeText(this,getString(R.string.textLeftButtonAlertCancelar),Toast.LENGTH_SHORT).show() },
+            {
+                Toast.makeText(
+                    this,
+                    getString(R.string.textLeftButtonAlertCancelar),
+                    Toast.LENGTH_SHORT
+                ).show()
+            },
             { signOut() }
-            )
+        )
     }
 
     private fun initToolBar() {
@@ -663,6 +688,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         mpHard = MediaPlayer.create(this, R.raw.hard_music)
         mpSoft = MediaPlayer.create(this, R.raw.soft_music)
 
+        mpNotify?.isLooping = false
         mpHard?.isLooping = true
         mpSoft?.isLooping = true
 
@@ -767,6 +793,19 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         medalsListRunningDistance.clear()
         medalsListRunningAvgSpeed.clear()
         medalsListRunningMaxSpeed.clear()
+
+    }
+
+    private fun resetMedals() {
+        recDistanceGold = false
+        recDistanceSilver = false
+        recDistanceBronze = false
+        recAvgSpeedGold = false
+        recAvgSpeedSilver = false
+        recAvgSpeedBronze = false
+        recMaxSpeedGold = false
+        recMaxSpeedSilver = false
+        recMaxSpeedBronze = false
 
     }
 
@@ -1338,8 +1377,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             getColor(R.color.gray_medium),
             getColor(R.color.blue),
             getColor(R.color.gray_trans),
-            { Toast.makeText(this,getString(android.R.string.cancel),Toast.LENGTH_SHORT).show() },
-            {callClearPreferences()}
+            { Toast.makeText(this, getString(android.R.string.cancel), Toast.LENGTH_SHORT).show() },
+            { callClearPreferences() }
         )
     }
 
@@ -1362,6 +1401,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun callRecordActivity() {
+
+        if (startButtonClicked) manageStartStop()
+
         val intent = Intent(this, RecordActivity::class.java)
         startActivity(intent)
     }
@@ -1807,6 +1849,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     (listPoints as ArrayList<LatLng>).add(newPos)
                     createPolylines(listPoints)
 
+                    checkMedals(distance, avgSpeed, maxSpeed)
+
                 }
 
             }
@@ -1837,6 +1881,144 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         }
 
+    }
+
+    private fun checkMedals(d: Double, aS: Double, mS: Double) {
+        if (d > 0) {
+            if (d >= medalsListSportSelectedDistance.get(0)) {
+                recDistanceGold = true; recDistanceSilver = false; recDistanceBronze = false
+                notifyMedal("distance", "gold", "PERSONAL")
+            } else {
+                if (d >= medalsListSportSelectedDistance.get(1)) {
+                    recDistanceGold = false; recDistanceSilver = true; recDistanceBronze = false
+                    notifyMedal("distance", "silver", "PERSONAL")
+                } else {
+                    if (d >= medalsListSportSelectedDistance.get(2)) {
+                        recDistanceGold = false; recDistanceSilver = false; recDistanceBronze = true
+                        notifyMedal("distance", "bronze", "PERSONAL")
+                    }
+                }
+            }
+        }
+
+        if (aS > 0) {
+            if (aS >= medalsListSportSelectedAvgSpeed.get(0)) {
+                recAvgSpeedGold = true; recAvgSpeedSilver = false; recAvgSpeedBronze = false
+                notifyMedal("avgSpeed", "gold", "PERSONAL")
+            } else {
+                if (aS >= medalsListSportSelectedAvgSpeed.get(1)) {
+                    recAvgSpeedGold = false; recAvgSpeedSilver = true; recAvgSpeedBronze = false
+                    notifyMedal("avgSpeed", "silver", "PERSONAL")
+                } else {
+                    if (aS >= medalsListSportSelectedAvgSpeed.get(2)) {
+                        recAvgSpeedGold = false; recAvgSpeedSilver = false; recAvgSpeedBronze = true
+                        notifyMedal("avgSpeed", "bronze", "PERSONAL")
+                    }
+                }
+            }
+        }
+
+        if (mS > 0) {
+            if (mS >= medalsListSportSelectedMaxSpeed.get(0)) {
+                recMaxSpeedGold = true; recMaxSpeedSilver = false; recMaxSpeedBronze = false
+                notifyMedal("maxSpeed", "gold", "PERSONAL")
+            } else {
+                if (mS >= medalsListSportSelectedMaxSpeed.get(1)) {
+                    recMaxSpeedGold = false; recMaxSpeedSilver = true; recMaxSpeedBronze = false
+                    notifyMedal("maxSpeed", "silver", "PERSONAL")
+                } else {
+                    if (mS >= medalsListSportSelectedMaxSpeed.get(2)) {
+                        recMaxSpeedGold = false; recMaxSpeedSilver = false; recMaxSpeedBronze = true
+                        notifyMedal("maxSpeed", "bronze", "PERSONAL")
+                    }
+                }
+            }
+        }
+
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun notifyMedal(category: String, metal: String, scope: String) {
+        var CHANNEL_ID = "NEW $scope RECORD - $sportSelected"
+
+        createNotificationChannel(CHANNEL_ID)
+
+
+        var textNotification = ""
+        when (metal) {
+            "gold" -> textNotification = "1ª "
+            "silver" -> textNotification = "2ª "
+            "bronze" -> textNotification = "3ª "
+        }
+        textNotification += "mejor marca personal en "
+        when (category) {
+            "distance" -> textNotification += "distancia recorrida"
+            "avgSpeed" -> textNotification += " velocidad promedio"
+            "maxSpeed" -> textNotification += " velocidad máxima alcanzada"
+        }
+
+        var iconNotificacion: Int = 0
+        when (metal) {
+            "gold" -> iconNotificacion = R.drawable.medalgold
+            "silver" -> iconNotificacion = R.drawable.medalsilver
+            "bronze" -> iconNotificacion = R.drawable.medalbronze
+        }
+
+        var builder = NotificationCompat.Builder(this, CHANNEL_ID)
+            .setSmallIcon(iconNotificacion)
+            .setContentTitle(CHANNEL_ID)
+            .setContentText(textNotification)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+
+
+        var notificationId: Int = 0
+        when (category) {
+            "distance" ->
+                when (metal) {
+                    "gold" -> notificationId = 11
+                    "silver" -> notificationId = 12
+                    "bronze" -> notificationId = 13
+                }
+            "avgSpeed" ->
+                when (metal) {
+                    "gold" -> notificationId = 21
+                    "silver" -> notificationId = 22
+                    "bronze" -> notificationId = 23
+                }
+            "maxSpeed" ->
+                when (metal) {
+                    "gold" -> notificationId = 31
+                    "silver" -> notificationId = 32
+                    "bronze" -> notificationId = 33
+                }
+        }
+
+        with(NotificationManagerCompat.from(this)) {
+            // notificationId is a unique int for each notification that you must define
+            notify(notificationId, builder.build())
+        }
+
+        mpNotify?.start()
+
+    }
+
+    private fun createNotificationChannel(chanelId: String) {
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is new and not in the support library
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            //val name = getString(R.string.channel_name)
+            val name = "experimental"
+            //val descriptionText = getString(R.string.channel_description)
+            val descriptionText = "experimental"
+            val importance = NotificationManager.IMPORTANCE_DEFAULT
+            val channel = NotificationChannel(chanelId, name, importance).apply {
+                description = descriptionText
+            }
+            // Register the channel with the system
+            val notificationManager: NotificationManager =
+                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
+        }
     }
 
     private fun calculateDistance(n_lt: Double, n_lg: Double): Double {
@@ -1873,19 +2055,67 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         tvCurrentDistance.text = roundNumber(distance.toString(), 2)
         tvCurrentAvgSpeed.text = roundNumber(avgSpeed.toString(), 1)
         tvCurrentSpeed.text = roundNumber(speed.toString(), 1)
-
-
         csbCurrentDistance.progress = distance.toFloat()
+
+        if (distance > totalsSelectedSport.recordDistance!!) {
+            tvDistanceRecord.text = roundNumber(distance.toString(), 1)
+            tvDistanceRecord.setTextColor(ContextCompat.getColor(this, R.color.salmon_dark))
+
+            csbCurrentDistance.max = distance.toFloat()
+            csbCurrentDistance.progress = distance.toFloat()
+            if (!recordDistanceObtained) {
+                mpNotify?.start()
+                recordDistanceObtained = true
+            }
+
+            totalsSelectedSport.recordDistance = distance
+        }
 
         csbCurrentAvgSpeed.progress = avgSpeed.toFloat()
 
+        if (avgSpeed > totalsSelectedSport.recordAvgSpeed!!) {
+            tvAvgSpeedRecord.text = roundNumber(avgSpeed.toString(), 1)
+            csbCurrentAvgSpeed.progress = avgSpeed.toFloat()
+
+            csbRecordAvgSpeed.max = avgSpeed.toFloat()
+            csbCurrentAvgSpeed.max = avgSpeed.toFloat()
+
+
+
+            tvAvgSpeedRecord.setTextColor(ContextCompat.getColor(this, R.color.salmon_dark))
+
+            mpNotify?.start()
+
+            totalsSelectedSport.recordAvgSpeed = avgSpeed
+        }
+
+
+        if (speed > totalsSelectedSport.recordSpeed!!) {
+            tvMaxSpeedRecord.text = roundNumber(speed.toString(), 1)
+            tvMaxSpeedRecord.setTextColor(ContextCompat.getColor(this, R.color.salmon_dark))
+
+            csbRecordSpeed.max = speed.toFloat()
+            csbRecordSpeed.progress = speed.toFloat()
+
+            csbCurrentMaxSpeed.max = speed.toFloat()
+            csbCurrentMaxSpeed.progress = speed.toFloat()
+
+            csbCurrentSpeed.max = speed.toFloat()
+
+            mpNotify?.start()
+
+            totalsSelectedSport.recordSpeed = speed
+
+        } else {
+            if (speed == maxSpeed) {
+                csbCurrentMaxSpeed.max = csbRecordSpeed.max
+                csbCurrentMaxSpeed.progress = speed.toFloat()
+                csbCurrentSpeed.max = csbRecordSpeed.max
+            }
+        }
         csbCurrentSpeed.progress = speed.toFloat()
 
-        if (speed == maxSpeed) {
-            csbCurrentMaxSpeed.max = csbRecordSpeed.max
-            csbCurrentMaxSpeed.progress = speed.toFloat()
-            csbCurrentSpeed.max = csbRecordSpeed.max
-        }
+
     }
 
     private fun createPolylines(listPosition: Iterable<LatLng>) {
@@ -1953,7 +2183,12 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             "Bike" -> {
                 LIMIT_DISTANCE_ACCEPTED = LIMIT_DISTANCE_ACCEPTED_BIKE
 
-                lySportBike.setBackgroundColor(ContextCompat.getColor(mainContext, R.color.orange))
+                lySportBike.setBackgroundColor(
+                    ContextCompat.getColor(
+                        mainContext,
+                        R.color.orange
+                    )
+                )
                 lySportRollerSkate.setBackgroundColor(
                     ContextCompat.getColor(
                         mainContext,
@@ -2077,7 +2312,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private fun updateTotalsUser() {
         totalsSelectedSport.totalRuns = totalsSelectedSport.totalRuns!! + 1
         totalsSelectedSport.totalDistance = totalsSelectedSport.totalDistance!! + distance
-        totalsSelectedSport.totalTime = totalsSelectedSport.totalTime!! + timeInSeconds.toInt()
+        totalsSelectedSport.totalTime =
+            totalsSelectedSport.totalTime!! + timeInSeconds.toInt()
 
         if (distance > totalsSelectedSport.recordDistance!!) {
             totalsSelectedSport.recordDistance = distance
@@ -2170,8 +2406,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 getColor(R.color.gray_medium),
                 getColor(R.color.blue),
                 getColor(R.color.blue_trans),
-                {Toast.makeText(this,R.string.ignoreActivationGPS,Toast.LENGTH_SHORT).show()},
-                {activationLocation()}
+                {
+                    Toast.makeText(this, R.string.ignoreActivationGPS, Toast.LENGTH_SHORT)
+                        .show()
+                },
+                { activationLocation() }
             )
 
         } else
@@ -2190,6 +2429,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             npDurationInterval.isEnabled = false
             csbRunWalk.isEnabled = false
 
+            recordDistanceObtained = false
             swChallenges.isClickable = false
             npChallengeDistance.isEnabled = false
             npChallengeDurationHH.isEnabled = false
@@ -2329,6 +2569,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         resetTimeView()
         resetInterface()
+        resetMedals()
     }
 
     private fun saveDataRun() {
@@ -2345,6 +2586,22 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         var centerLatitude = (minLatitude!! + maxLatitude!!) / 2
         var centerLongitude = (minLongitude!! + maxLongitude!!) / 2
+
+        var medalDistance = "none"
+        var medalAvgSpeed = "none"
+        var medalMaxSpeed = "none"
+
+        if (recDistanceGold) medalDistance = "gold"
+        if (recDistanceSilver) medalDistance = "silver"
+        if (recDistanceBronze) medalDistance = "bronze"
+
+        if (recAvgSpeedGold) medalAvgSpeed = "gold"
+        if (recAvgSpeedSilver) medalAvgSpeed = "silver"
+        if (recAvgSpeedBronze) medalAvgSpeed = "bronze"
+
+        if (recMaxSpeedGold) medalMaxSpeed = "gold"
+        if (recMaxSpeedSilver) medalMaxSpeed = "silver"
+        if (recMaxSpeedBronze) medalMaxSpeed = "bronze"
 
         var collection = "runs$sportSelected"
         var dbRun = FirebaseFirestore.getInstance()
@@ -2366,7 +2623,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 "minLongitude" to minLongitude,
                 "maxLongitude" to maxLongitude,
                 "centerLatitude" to centerLatitude,
-                "centerLongitude" to centerLongitude
+                "centerLongitude" to centerLongitude,
+                "medalDistance" to medalDistance,
+                "medalAvgSpeed" to medalAvgSpeed,
+                "medalMaxSpeed" to medalMaxSpeed,
             )
         )
 
@@ -2388,7 +2648,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 )
             if (challengeDuration > 0)
                 dbRun.collection(collection).document(id)
-                    .update("challengeDuration", getFormattedStopWatch(challengeDuration.toLong()))
+                    .update(
+                        "challengeDuration",
+                        getFormattedStopWatch(challengeDuration.toLong())
+                    )
         }
 
     }
@@ -2402,14 +2665,20 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             getColor(R.color.blue),
             getColor(R.color.purple_200),
             getColor(R.color.orange_trans),
-            { Toast.makeText(this,getString(R.string.textLeftButtonAlertDeleteRun),Toast.LENGTH_SHORT).show() },
+            {
+                Toast.makeText(
+                    this,
+                    getString(R.string.textLeftButtonAlertDeleteRun),
+                    Toast.LENGTH_SHORT
+                ).show()
+            },
             { deleteRun() }
         )
 
 
-
     }
-    private fun deleteRun(){
+
+    private fun deleteRun() {
         var id: String = useremail + dateRun + startTimeRun
         id = id.replace(":", "")
         id = id.replace("/", "")
@@ -2530,7 +2799,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             )
         ) {
 
-            var movement = -1 * (widthAnimations - (s * widthAnimations / TIME_RUNNING)).toFloat()
+            var movement =
+                -1 * (widthAnimations - (s * widthAnimations / TIME_RUNNING)).toFloat()
             animateViewofFloat(lyRoundProgressBg, "translationX", movement, 1000L)
             isRunning = true
             isWalking = false
@@ -2705,6 +2975,32 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     private fun showMedals() {
 
+        val ivMedalDistance = findViewById<ImageView>(R.id.ivMedalDistance)
+        val ivMedalAvgSpeed = findViewById<ImageView>(R.id.ivMedalAvgSpeed)
+        val ivMedalMaxSpeed = findViewById<ImageView>(R.id.ivMedalMaxSpeed)
+
+        val tvMedalDistanceTitle = findViewById<TextView>(R.id.tvMedalDistanceTitle)
+        val tvMedalAvgSpeedTitle = findViewById<TextView>(R.id.tvMedalAvgSpeedTitle)
+        val tvMedalMaxSpeedTitle = findViewById<TextView>(R.id.tvMedalMaxSpeedTitle)
+
+        if (recDistanceGold) ivMedalDistance.setImageResource(R.drawable.medalgold)
+        if (recDistanceSilver) ivMedalDistance.setImageResource(R.drawable.medalsilver)
+        if (recDistanceBronze) ivMedalDistance.setImageResource(R.drawable.medalbronze)
+        if (recDistanceGold || recDistanceSilver || recDistanceBronze)
+            tvMedalDistanceTitle.setText(R.string.medalDistanceDescription)
+
+        if (recAvgSpeedGold) ivMedalAvgSpeed.setImageResource(R.drawable.medalgold)
+        if (recAvgSpeedSilver) ivMedalAvgSpeed.setImageResource(R.drawable.medalsilver)
+        if (recAvgSpeedBronze) ivMedalAvgSpeed.setImageResource(R.drawable.medalbronze)
+        if (recAvgSpeedGold || recAvgSpeedSilver || recAvgSpeedBronze)
+            tvMedalAvgSpeedTitle.setText(R.string.medalAvgSpeedDescription)
+
+        if (recMaxSpeedGold) ivMedalMaxSpeed.setImageResource(R.drawable.medalgold)
+        if (recMaxSpeedSilver) ivMedalMaxSpeed.setImageResource(R.drawable.medalsilver)
+        if (recMaxSpeedBronze) ivMedalMaxSpeed.setImageResource(R.drawable.medalbronze)
+        if (recMaxSpeedGold || recMaxSpeedSilver || recMaxSpeedBronze)
+            tvMedalMaxSpeedTitle.setText(R.string.medalMaxSpeedDescription)
+
     }
 
     private fun showDataRun() {
@@ -2714,7 +3010,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         var lyIntervalRun = findViewById<LinearLayout>(R.id.lyIntervalRun)
         var tvIntervalRun = findViewById<TextView>(R.id.tvIntervalRun)
         var tvDistanceRun = findViewById<TextView>(R.id.tvDistanceRun)
-        var lyChallengeDistancePopUp = findViewById<LinearLayout>(R.id.lyChallengeDistancePopUp)
+        var lyChallengeDistancePopUp =
+            findViewById<LinearLayout>(R.id.lyChallengeDistancePopUp)
         var tvChallengeDistanceRun = findViewById<TextView>(R.id.tvChallengeDistanceRun)
         var lyUnevennessRun = findViewById<LinearLayout>(R.id.lyUnevennessRun)
         var tvMaxUnevennessRun = findViewById<TextView>(R.id.tvMaxUnevennessRun)
@@ -2829,6 +3126,15 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }
     }
 
+    fun takePicture (v:View){
+        val intent = Intent(this,Camara::class.java)
+
+        val inParameter = intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        inParameter.putExtra("dateRun",dateRun)
+        inParameter.putExtra("startTimeRun",startTimeRun)
+
+        startActivity(intent)
+    }
 
 }
 
