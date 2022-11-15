@@ -107,8 +107,8 @@ class Camara : AppCompatActivity() {
     }
 
     private fun allPermissionsGranted() =  REQUIRED_PERMISSIONS.all {
-            ContextCompat.checkSelfPermission(baseContext,it) == PackageManager.PERMISSION_GRANTED
-        }
+        ContextCompat.checkSelfPermission(baseContext,it) == PackageManager.PERMISSION_GRANTED
+    }
 
     private fun bindCamera(){
 
