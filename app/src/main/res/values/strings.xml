@@ -119,4 +119,5 @@
     <string name="CardMedalDistance">Kms. [RP]</string>
     <string name="CardMedalAvgSpeed">V.Máx. [RP]</string>
     <string name="CardMedalMaxSpeed">V.Pr. [RP]</string>
+    <string name="CaardMedalMaxSpeed">Vf.Pr. [RP]</string>
 </resources>
