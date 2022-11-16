@@ -8,6 +8,7 @@ import android.view.View
 import android.widget.LinearLayout
 import com.bpandof.appdeporte.LoginActivity.Companion.useremail
 import com.bpandof.appdeporte.MainActivity.Companion.activatedGPS
+import com.bpandof.appdeporte.MainActivity.Companion.countPhotos
 import com.bpandof.appdeporte.MainActivity.Companion.totalsBike
 import com.bpandof.appdeporte.MainActivity.Companion.totalsRollerSkate
 import com.bpandof.appdeporte.MainActivity.Companion.totalsRunning
@@ -15,8 +16,13 @@ import com.bpandof.appdeporte.MainActivity.Companion.totalsSelectedSport
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
-import io.grpc.ClientStreamTracer.StreamInfo
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.ktx.storage
 import java.util.concurrent.TimeUnit
+import com.google.firebase.storage.ktx.component1
+import com.google.firebase.storage.ktx.component2
+
 
 object Utility {
     private var totalsChecked: Int = 0
@@ -121,7 +127,7 @@ object Utility {
         //si teniamos el GPS, borramos las ubicaciones
         if (activatedGPS) deleteLocations(idRun, useremail)
         // si habia todos, borramos todas las fotos
-
+        if (countPhotos >0) deletePicutresRun(idRun)
         //revisamos los totales y los records
         updateTotals(cr)
         checkRecords(cr, sport, useremail)
@@ -249,6 +255,36 @@ object Utility {
 
     }
 
+
+
+
+    private fun deletePicutresRun(idRun: String){
+        var idFolder = idRun.subSequence(useremail.length, idRun.length).toString()
+        val delRef = FirebaseStorage.getInstance().getReference("images/$useremail/$idFolder")
+        val storage = Firebase.storage
+        val listRef = storage.reference.child("images/$useremail/$idFolder")
+        listRef.listAll()
+            .addOnSuccessListener { (items, prefixes) ->
+                prefixes.forEach { prefix ->
+                    // All the prefixes under listRef.
+                    // You may call listAll() recursively on them.
+                }
+                items.forEach { item ->
+                    val storageRef = storage.reference
+                    val deleteRef = storageRef.child((item.path))
+                    deleteRef.delete()
+
+                }
+
+
+
+            }
+            .addOnFailureListener {
+
+            }
+
+    }
+
     private fun updateTotals(cr: Runs) {
         totalsSelectedSport.totalDistance = totalsSelectedSport.recordDistance!! - cr.distance!!
         totalsSelectedSport.totalRuns = totalsSelectedSport.totalRuns!! - 1
@@ -277,3 +313,6 @@ object Utility {
 
 
 }
+
+
+

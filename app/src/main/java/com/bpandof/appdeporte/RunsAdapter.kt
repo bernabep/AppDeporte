@@ -12,10 +12,13 @@ import com.bpandof.appdeporte.LoginActivity.Companion.useremail
 import com.bpandof.appdeporte.Utility.animateViewofFloat
 import com.bpandof.appdeporte.Utility.deleteRunAndLinkedData
 import com.bpandof.appdeporte.Utility.setHeightLinearLayout
+import com.google.android.gms.tasks.Task
 import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageMetadata
 import java.io.File
 
-class RunsAdapter(private val runsList: ArrayList<Runs>) : RecyclerView.Adapter<RunsAdapter.MyViewHolder>(){
+class RunsAdapter(private val runsList: ArrayList<Runs>) :
+    RecyclerView.Adapter<RunsAdapter.MyViewHolder>() {
 
 
     private var minimized = true
@@ -23,11 +26,10 @@ class RunsAdapter(private val runsList: ArrayList<Runs>) : RecyclerView.Adapter<
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
         context = parent.context
-        val itemView = LayoutInflater.from(context).inflate(R.layout.card_run,parent,false)
+        val itemView = LayoutInflater.from(context).inflate(R.layout.card_run, parent, false)
         return MyViewHolder(itemView)
 
     }
-
 
 
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
@@ -37,14 +39,13 @@ class RunsAdapter(private val runsList: ArrayList<Runs>) : RecyclerView.Adapter<
         setHeightLinearLayout(holder.lyDataRunBody, 0)
         holder.lyDataRunBodyContainer.translationY = -200f
 
-        holder.ivHeaderOpenClose.setOnClickListener{
-            if (minimized){
-                setHeightLinearLayout(holder.lyDataRunBody, 600)
+        holder.ivHeaderOpenClose.setOnClickListener {
+            if (minimized) {
+                setHeightLinearLayout(holder.lyDataRunBody, 700)
                 animateViewofFloat(holder.lyDataRunBodyContainer, "translationY", 0f, 300L)
                 holder.ivHeaderOpenClose.setRotation(180f)
                 minimized = false
-            }
-            else{
+            } else {
                 holder.lyDataRunBodyContainer.translationY = -200f
                 setHeightLinearLayout(holder.lyDataRunBody, 0)
                 holder.ivHeaderOpenClose.setRotation(0f)
@@ -52,9 +53,13 @@ class RunsAdapter(private val runsList: ArrayList<Runs>) : RecyclerView.Adapter<
             }
         }
 
+        holder.tvDelete.setOnClickListener {
+
+        }
+
         var day = run.date?.subSequence(8, 10)
         var n_month = run.date?.subSequence(5, 7)
-        var month: String ?= null
+        var month: String? = null
         var year = run.date?.subSequence(0, 4)
 
         when (n_month) {
@@ -76,9 +81,9 @@ class RunsAdapter(private val runsList: ArrayList<Runs>) : RecyclerView.Adapter<
         holder.tvDate.text = date
         holder.tvHeaderDate.text = date
 
-        holder.tvStartTime.text = run.startTime?.subSequence(0,5)
+        holder.tvStartTime.text = run.startTime?.subSequence(0, 5)
         holder.tvDurationRun.text = run.duration
-        holder.tvHeaderDuration.text = run.duration!!.subSequence(0,5).toString()+"HH"
+        holder.tvHeaderDuration.text = run.duration!!.subSequence(0, 5).toString() + "HH"
 
         if (!run.challengeDuration.isNullOrEmpty())
             holder.tvChallengeDurationRun.text = run.challengeDuration
@@ -91,12 +96,11 @@ class RunsAdapter(private val runsList: ArrayList<Runs>) : RecyclerView.Adapter<
             setHeightLinearLayout(holder.lyChallengeDistance, 0)
 
 
-        if (run.intervalMode != null){
+        if (run.intervalMode != null) {
             var details: String = "${run.intervalDuration}mins. ("
             details += "${run.runningTime}/${run.walkingTime})"
             holder.tvIntervalRun.text = details
-        }
-        else
+        } else
             setHeightLinearLayout(holder.lyIntervalRun, 0)
 
         holder.tvDistanceRun.setText(run.distance.toString())
@@ -106,84 +110,116 @@ class RunsAdapter(private val runsList: ArrayList<Runs>) : RecyclerView.Adapter<
         holder.tvMinUnevennessRun.setText(run.minAltitude.toString())
 
         holder.tvAvgSpeedRun.setText(run.avgSpeed.toString())
-        holder.tvHeaderAvgSpeed.setText(run.avgSpeed.toString()+"KM/H")
+        holder.tvHeaderAvgSpeed.setText(run.avgSpeed.toString() + "KM/H")
         holder.tvMaxSpeedRun.setText(run.maxSpeed.toString())
 
 
 
-        when(run.medalDistance){
-            "gold"->{
+        when (run.medalDistance) {
+            "gold" -> {
                 holder.ivMedalDistance.setImageResource(R.drawable.medalgold)
                 holder.ivHeaderMedalDistance.setImageResource(R.drawable.medalgold)
                 holder.tvMedalDistanceTitle.setText(R.string.CardMedalDistance)
             }
-            "silver"->{
+            "silver" -> {
                 holder.ivMedalDistance.setImageResource(R.drawable.medalsilver)
                 holder.ivHeaderMedalDistance.setImageResource(R.drawable.medalsilver)
                 holder.tvMedalDistanceTitle.setText(R.string.CardMedalDistance)
             }
-            "bronze"->{
+            "bronze" -> {
                 holder.ivMedalDistance.setImageResource(R.drawable.medalbronze)
                 holder.ivHeaderMedalDistance.setImageResource(R.drawable.medalbronze)
                 holder.tvMedalDistanceTitle.setText(R.string.CardMedalDistance)
             }
         }
-        when(run.medalAvgSpeed){
-            "gold"->{
+        when (run.medalAvgSpeed) {
+            "gold" -> {
                 holder.ivMedalAvgSpeed.setImageResource(R.drawable.medalgold)
                 holder.ivHeaderMedalAvgSpeed.setImageResource(R.drawable.medalgold)
                 holder.tvMedalAvgSpeedTitle.setText(R.string.CardMedalAvgSpeed)
             }
-            "silver"->{
+            "silver" -> {
                 holder.ivMedalAvgSpeed.setImageResource(R.drawable.medalsilver)
                 holder.ivHeaderMedalAvgSpeed.setImageResource(R.drawable.medalsilver)
                 holder.tvMedalAvgSpeedTitle.setText(R.string.CardMedalAvgSpeed)
             }
-            "bronze"->{
+            "bronze" -> {
                 holder.ivMedalAvgSpeed.setImageResource(R.drawable.medalbronze)
                 holder.ivHeaderMedalAvgSpeed.setImageResource(R.drawable.medalbronze)
                 holder.tvMedalAvgSpeedTitle.setText(R.string.CardMedalAvgSpeed)
             }
         }
-        when(run.medalMaxSpeed){
-            "gold"->{
+        when (run.medalMaxSpeed) {
+            "gold" -> {
                 holder.ivMedalMaxSpeed.setImageResource(R.drawable.medalgold)
                 holder.ivHeaderMedalMaxSpeed.setImageResource(R.drawable.medalgold)
                 holder.tvMedalMaxSpeedTitle.setText(R.string.CardMedalMaxSpeed)
             }
-            "silver"->{
+            "silver" -> {
                 holder.ivMedalMaxSpeed.setImageResource(R.drawable.medalsilver)
                 holder.ivHeaderMedalMaxSpeed.setImageResource(R.drawable.medalsilver)
                 holder.tvMedalMaxSpeedTitle.setText(R.string.CardMedalMaxSpeed)
             }
-            "bronze"->{
+            "bronze" -> {
                 holder.ivMedalMaxSpeed.setImageResource(R.drawable.medalbronze)
                 holder.ivHeaderMedalMaxSpeed.setImageResource(R.drawable.medalbronze)
                 holder.tvMedalMaxSpeedTitle.setText(R.string.CardMedalMaxSpeed)
             }
         }
 
-        if (run.lastimage != ""){
+
+        if (run.lastimage != "") {
 
             var path = run.lastimage
             val storageRef = FirebaseStorage.getInstance().reference.child(path!!)
-            var localfile = File.createTempFile("tempImage","jpg")
+            var localfile = File.createTempFile("tempImage", "jpg")
             storageRef.getFile(localfile)
-                .addOnFailureListener{
-                    Toast.makeText(context,"fallo al cargar la imagen",Toast.LENGTH_SHORT).show()
-                }
                 .addOnSuccessListener {
-                    val bitmap = BitmapFactory.decodeFile(localfile.absolutePath)
-                    var porcent = 80/bitmap.width.toFloat()
 
-                    setHeightLinearLayout(holder.lyPicture,(bitmap.height * porcent).toInt())
-                    holder.ivPicture.setImageBitmap(bitmap)
+                    val bitmap = BitmapFactory.decodeFile(localfile.absolutePath)
+
+                    val metaRef = FirebaseStorage.getInstance().getReference(run.lastimage!!)
+
+                    val metadata: Task<StorageMetadata> = metaRef.metadata
+                    metadata.addOnSuccessListener {
+
+                        var or = it.getCustomMetadata("orientation")
+                        if (or == "horizontal") {
+
+                            var porcent = 100 / bitmap.width.toFloat()
+
+                            setHeightLinearLayout(
+                                holder.lyPicture,
+                                (bitmap.width * porcent).toInt()
+                            )
+                            holder.ivPicture.setImageBitmap(bitmap)
+
+                        } else {
+                            var porcent = 100 / bitmap.height.toFloat()
+
+                            setHeightLinearLayout(
+                                holder.lyPicture,
+                                (bitmap.width * porcent).toInt()
+                            )
+                            holder.ivPicture.setImageBitmap(bitmap)
+                            holder.ivPicture.setRotation(90f)
+                        }
+                    }
+                    metadata.addOnFailureListener {
+
+                    }
+
+
                 }
 
+                .addOnFailureListener {
+                    Toast.makeText(context, "fallo al cargar la imagen", Toast.LENGTH_SHORT).show()
+                }
         }
 
-        holder.tvDelete.setOnClickListener{
 
+
+        holder.tvDelete.setOnClickListener{
             var id:String = useremail + run.date + run.startTime
             id = id.replace(":", "")
             id = id.replace("/", "")
@@ -205,7 +241,11 @@ class RunsAdapter(private val runsList: ArrayList<Runs>) : RecyclerView.Adapter<
             notifyItemRemoved(position)
 
         }
+
+
     }
+
+
 
 
 
@@ -214,7 +254,7 @@ class RunsAdapter(private val runsList: ArrayList<Runs>) : RecyclerView.Adapter<
     }
 
 
-    public class MyViewHolder(itemView: View):RecyclerView.ViewHolder(itemView) {
+    public class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
         val lyDataRunHeader: LinearLayout = itemView.findViewById(R.id.lyDataRunHeader)
         val tvHeaderDate: TextView = itemView.findViewById(R.id.tvHeaderDate)
@@ -227,22 +267,26 @@ class RunsAdapter(private val runsList: ArrayList<Runs>) : RecyclerView.Adapter<
         val ivHeaderOpenClose: ImageView = itemView.findViewById(R.id.ivHeaderOpenClose)
 
         val lyDataRunBody: LinearLayout = itemView.findViewById(R.id.lyDataRunBody)
-        val lyDataRunBodyContainer: LinearLayout = itemView.findViewById(R.id.lyDataRunBodyContainer)
+        val lyDataRunBodyContainer: LinearLayout =
+            itemView.findViewById(R.id.lyDataRunBodyContainer)
 
         val tvDate: TextView = itemView.findViewById(R.id.tvDate)
         val tvStartTime: TextView = itemView.findViewById(R.id.tvStartTime)
 
 
         val tvDurationRun: TextView = itemView.findViewById(R.id.tvDurationRun)
-        val lyChallengeDurationRun: LinearLayout = itemView.findViewById(R.id.lyChallengeDurationRun)
-        val tvChallengeDurationRun: TextView = itemView.findViewById(R.id.tvChallengeDurationRun)
+        val lyChallengeDurationRun: LinearLayout =
+            itemView.findViewById(R.id.lyChallengeDurationRun)
+        val tvChallengeDurationRun: TextView =
+            itemView.findViewById(R.id.tvChallengeDurationRun)
         val lyIntervalRun: LinearLayout = itemView.findViewById(R.id.lyIntervalRun)
         val tvIntervalRun: TextView = itemView.findViewById(R.id.tvIntervalRun)
 
 
         val tvDistanceRun: TextView = itemView.findViewById(R.id.tvDistanceRun)
         val lyChallengeDistance: LinearLayout = itemView.findViewById(R.id.lyChallengeDistance)
-        val tvChallengeDistanceRun: TextView = itemView.findViewById(R.id.tvChallengeDistanceRun)
+        val tvChallengeDistanceRun: TextView =
+            itemView.findViewById(R.id.tvChallengeDistanceRun)
         val lyUnevennessRun: LinearLayout = itemView.findViewById(R.id.lyUnevennessRun)
         val tvMaxUnevennessRun: TextView = itemView.findViewById(R.id.tvMaxUnevennessRun)
         val tvMinUnevennessRun: TextView = itemView.findViewById(R.id.tvMinUnevennessRun)
