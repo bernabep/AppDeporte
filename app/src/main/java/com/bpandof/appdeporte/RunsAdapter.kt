@@ -1,6 +1,7 @@
 package com.bpandof.appdeporte
 
 import android.content.Context
+import android.graphics.BitmapFactory
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,6 +12,8 @@ import com.bpandof.appdeporte.LoginActivity.Companion.useremail
 import com.bpandof.appdeporte.Utility.animateViewofFloat
 import com.bpandof.appdeporte.Utility.deleteRunAndLinkedData
 import com.bpandof.appdeporte.Utility.setHeightLinearLayout
+import com.google.firebase.storage.FirebaseStorage
+import java.io.File
 
 class RunsAdapter(private val runsList: ArrayList<Runs>) : RecyclerView.Adapter<RunsAdapter.MyViewHolder>(){
 
@@ -158,6 +161,25 @@ class RunsAdapter(private val runsList: ArrayList<Runs>) : RecyclerView.Adapter<
                 holder.ivHeaderMedalMaxSpeed.setImageResource(R.drawable.medalbronze)
                 holder.tvMedalMaxSpeedTitle.setText(R.string.CardMedalMaxSpeed)
             }
+        }
+
+        if (run.lastimage != ""){
+
+            var path = run.lastimage
+            val storageRef = FirebaseStorage.getInstance().reference.child(path!!)
+            var localfile = File.createTempFile("tempImage","jpg")
+            storageRef.getFile(localfile)
+                .addOnFailureListener{
+                    Toast.makeText(context,"fallo al cargar la imagen",Toast.LENGTH_SHORT).show()
+                }
+                .addOnSuccessListener {
+                    val bitmap = BitmapFactory.decodeFile(localfile.absolutePath)
+                    var porcent = 80/bitmap.width.toFloat()
+
+                    setHeightLinearLayout(holder.lyPicture,(bitmap.height * porcent).toInt())
+                    holder.ivPicture.setImageBitmap(bitmap)
+                }
+
         }
 
         holder.tvDelete.setOnClickListener{
