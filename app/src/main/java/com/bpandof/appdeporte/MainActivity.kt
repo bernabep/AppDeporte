@@ -2569,7 +2569,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         resetTimeView()
         resetInterface()
-        resetMedals()
+
     }
 
     private fun saveDataRun() {
@@ -3074,6 +3074,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         var rlMain = findViewById<RelativeLayout>(R.id.rlMain)
         rlMain.isEnabled = true
         resetVariablesRun()
+        resetMedals()
         selectSport(sportSelected)
     }
 
@@ -3136,6 +3137,94 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         inParameter.putExtra("startTimeRun",startTimeRun)
 
         startActivity(intent)
+    }
+
+    fun shareRun(v: View){
+        callShareRun()
+    }
+
+    private fun callShareRun(){
+        var idRun = dateRun + startTimeRun
+        idRun = idRun.replace(":", "")
+        idRun = idRun.replace("/", "")
+
+        var centerLatitude: Double = 0.0
+        var centerLongitude: Double = 0.0
+
+        if (activatedGPS == true ){
+            centerLatitude = ((minLatitude!! + maxLatitude!!)/2)
+            centerLongitude = ((minLongitude!! + maxLongitude!!)/2)
+        }
+
+        var saveDuration = tvChrono.text.toString()
+        var saveDistance = roundNumber(distance.toString(),1)
+        var saveMaxSpeed = roundNumber(maxSpeed.toString(),1)
+        var saveAvgSpeed = roundNumber(avgSpeed.toString(),1)
+
+        var medalDistance = "none"
+        var medalAvgSpeed = "none"
+        var medalMaxSpeed = "none"
+
+        if (recDistanceGold) medalDistance = "gold"
+        if (recDistanceSilver) medalDistance = "silver"
+        if (recDistanceBronze) medalDistance = "bronze"
+
+        if (recAvgSpeedGold) medalAvgSpeed = "gold"
+        if (recAvgSpeedSilver) medalAvgSpeed = "silver"
+        if (recAvgSpeedBronze) medalAvgSpeed = "bronze"
+
+        if (recMaxSpeedGold) medalMaxSpeed = "gold"
+        if (recMaxSpeedSilver) medalMaxSpeed = "silver"
+        if (recMaxSpeedBronze) medalMaxSpeed = "bronze"
+
+        //ENVIO DE PARAMETROS
+        val intent = Intent(this, RunActivity::class.java)
+        val inParameter = intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+
+        inParameter.putExtra("user", useremail)
+        inParameter.putExtra("idRun", idRun)
+        inParameter.putExtra("centerLatitude", centerLatitude)
+        inParameter.putExtra("centerLongitude", centerLongitude)
+
+        inParameter.putExtra("countPhotos", countPhotos)
+        inParameter.putExtra("lastimage", lastimage)
+
+        inParameter.putExtra("date", dateRun)
+        inParameter.putExtra("startTime", startTimeRun)
+        inParameter.putExtra("duration", saveDuration)
+        inParameter.putExtra("distance", saveDistance.toDouble())
+        inParameter.putExtra("maxSpeed", saveMaxSpeed.toDouble())
+        inParameter.putExtra("avgSpeed", saveAvgSpeed.toDouble())
+        inParameter.putExtra("minAltitude", minAltitude)
+        inParameter.putExtra("maxAltitude", maxAltitude)
+        inParameter.putExtra("medalDistance", medalDistance)
+        inParameter.putExtra("medalAvgSpeed", medalAvgSpeed)
+        inParameter.putExtra("medalMaxSpeed", medalMaxSpeed)
+        inParameter.putExtra("activatedGPS", activatedGPS)
+        inParameter.putExtra("sport", sportSelected)
+        inParameter.putExtra("intervalMode", swIntervalMode.isChecked)
+
+        if (swIntervalMode.isChecked){
+            inParameter.putExtra("intervalDuration", npDurationInterval.value)
+            inParameter.putExtra("runningTime", tvRunningTime.text.toString())
+            inParameter.putExtra("walkingTime", tvWalkingTime.text.toString())
+        }
+        if (swChallenges.isChecked){
+            if (challengeDistance > 0f)
+                inParameter.putExtra("challengeDistance", roundNumber(challengeDistance.toString(), 1).toDouble())
+            if (challengeDuration > 0)
+                inParameter.putExtra("challengeDuration", getFormattedStopWatch(challengeDuration.toLong()))
+        }
+
+        inParameter.putExtra("level_n", levelSelectedSport.name)
+        inParameter.putExtra("image_level", levelSelectedSport.image)
+        inParameter.putExtra("distanceTarget",levelSelectedSport.DistanceTarget!!.toDouble())
+        inParameter.putExtra("distanceTotal", totalsSelectedSport.totalDistance)
+        inParameter.putExtra("runsTarget", levelSelectedSport.RunsTarget!!.toInt())
+        inParameter.putExtra("runsTotal", totalsSelectedSport.totalRuns)
+
+        startActivity(intent)
+
     }
 
 }

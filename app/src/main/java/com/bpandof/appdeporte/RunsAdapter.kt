@@ -1,6 +1,7 @@
 package com.bpandof.appdeporte
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.BitmapFactory
 import android.view.LayoutInflater
 import android.view.View
@@ -41,7 +42,9 @@ class RunsAdapter(private val runsList: ArrayList<Runs>) :
 
         holder.ivHeaderOpenClose.setOnClickListener {
             if (minimized) {
-                setHeightLinearLayout(holder.lyDataRunBody, 700)
+                var h = 600
+                if (run.countPhotos!! > 0) h = 700
+                setHeightLinearLayout(holder.lyDataRunBody, h)
                 animateViewofFloat(holder.lyDataRunBodyContainer, "translationY", 0f, 300L)
                 holder.ivHeaderOpenClose.setRotation(180f)
                 minimized = false
@@ -53,9 +56,51 @@ class RunsAdapter(private val runsList: ArrayList<Runs>) :
             }
         }
 
+        holder.tvPlay.setOnClickListener {  }
+
         holder.tvDelete.setOnClickListener {
+            var idRun = run.date + run.startTime
+            idRun = idRun.replace(":", "")
+            idRun = idRun.replace("/", "")
+
+            //ENVIO DE PARAMETROS
+            val intent = Intent(context, RunActivity::class.java)
+            val inParameter = intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            inParameter.putExtra("user", run.user)
+            inParameter.putExtra("idRun", idRun)
+
+
+            inParameter.putExtra("countPhotos", run.countPhotos)
+            inParameter.putExtra("lastimage", run.lastimage)
+
+            inParameter.putExtra("centerLatitude", run.centerLatitude)
+            inParameter.putExtra("centerLongitude", run.centerLongitude)
+
+            inParameter.putExtra("date", run.date)
+            inParameter.putExtra("startTime", run.startTime)
+            inParameter.putExtra("duration", run.duration)
+            inParameter.putExtra("distance", run.distance)
+            inParameter.putExtra("maxSpeed", run.maxSpeed)
+            inParameter.putExtra("avgSpeed", run.avgSpeed)
+            inParameter.putExtra("minAltitude", run.minAltitude)
+            inParameter.putExtra("maxAltitude", run.maxAltitude)
+            inParameter.putExtra("medalDistance", run.medalDistance)
+            inParameter.putExtra("medalAvgSpeed", run.medalAvgSpeed)
+            inParameter.putExtra("medalMaxSpeed", run.medalMaxSpeed)
+            inParameter.putExtra("activatedGPS", run.activatedGPS)
+            inParameter.putExtra("sport", run.sport)
+            inParameter.putExtra("intervalMode", run.intervalMode)
+            inParameter.putExtra("intervalDuration", run.intervalDuration)
+            inParameter.putExtra("runningTime", run.runningTime)
+            inParameter.putExtra("walkingTime", run.walkingTime)
+            inParameter.putExtra("challengeDistance", run.challengeDistance)
+            inParameter.putExtra("challengeDuration", run.challengeDuration)
+
+
+            context.startActivity(intent)
 
         }
+
 
         var day = run.date?.subSequence(8, 10)
         var n_month = run.date?.subSequence(5, 7)
