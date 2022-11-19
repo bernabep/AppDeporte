@@ -70,6 +70,7 @@ class LoginActivity : AppCompatActivity() {
         setContentView(R.layout.activity_login)
         etRepPassword = findViewById(R.id.etRepPassword)
         etRepPassword.visibility = View.INVISIBLE
+        useremail = ""
 
         lyTerms = findViewById(R.id.lyTerms)
         lyTerms.visibility = View.INVISIBLE

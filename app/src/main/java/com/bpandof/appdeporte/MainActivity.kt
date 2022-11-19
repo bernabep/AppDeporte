@@ -5,11 +5,8 @@ import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.content.ContentValues
-import android.content.Context
-import android.content.DialogInterface
-import android.content.Intent
-import android.content.SharedPreferences
+import android.appwidget.AppWidgetManager
+import android.content.*
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
@@ -116,6 +113,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             )
         var countPhotos: Int = 0
         var lastimage:String = ""
+
+        lateinit var chronoWidget: String
+        lateinit var distanceWidget : String
     }
 
     private lateinit var sharedPreferences: SharedPreferences
@@ -265,6 +265,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private var recMaxSpeedSilver: Boolean = false
     private var recMaxSpeedBronze: Boolean = false
 
+    private lateinit var widget: Widget
+    private lateinit var mAppWidgetManager : AppWidgetManager
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -274,20 +277,41 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         initNavigationView()
         initPermissionsGPS()
 
+        initWidget()
+
         loadFromDB()
-
-
     }
 
+    private fun initWidget(){
+        widget = Widget()
+        mAppWidgetManager = AppWidgetManager.getInstance(mainContext)!!
+        updateWidgets()
+    }
+
+    private fun updateWidgets(){
+
+        chronoWidget = tvChrono.text.toString()
+        distanceWidget = roundNumber(distance.toString(),1)
+
+
+        val intent = Intent(application, Widget::class.java)
+        intent.action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+
+        val ids = mAppWidgetManager.getAppWidgetIds(ComponentName(application, Widget::class.java))
+        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids)
+        sendBroadcast(intent)
+    }
     override fun onBackPressed() {
         //super.onBackPressed()
-        if (lyPopupRun.isVisible) closePopUpRun()
 
-        if (drawer.isDrawerOpen(START))
-            drawer.closeDrawer(START)
-        else
-            if (timeInSeconds > 0L) resetClicked()
-        alertSignOut()
+        if (lyPopupRun.isVisible) closePopUpRun()
+        else{
+            if (drawer.isDrawerOpen(GravityCompat.START))
+                drawer.closeDrawer(GravityCompat.START)
+            else
+                if (timeInSeconds > 0L) resetClicked()
+            alertSignOut()
+        }
     }
 
 
@@ -2548,6 +2572,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
                 timeInSeconds += 1
                 updateStopWatchView()
+                updateWidgets()
+
             } finally {
                 mHandler!!.postDelayed(this, mInterval.toLong())
             }
